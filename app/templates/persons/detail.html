@@ -1,12 +1,6 @@
 {% extends  'base.html' %}
 
 {% block main %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'persons-list' %}">Роботы</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Задания</li>
-        </ol>
-    </nav>
     <div class="row justify-content-center">
         <div class="col-6">
             <h2>{{ person.name }}</h2>

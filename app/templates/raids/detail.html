@@ -1,12 +1,6 @@
 {% extends  'base.html' %}
 
 {% block main %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'raids-rules' %}">Задания</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ raid.rules.title }} #{{ raid.pk }}</li>
-        </ol>
-    </nav>
     <div class="row justify-content-center">
         <div class="col-6">
             <h5>{{ raid.rules.title }} #{{ raid.pk }}</h5>
@@ -14,7 +8,10 @@
             <p>максимум человеков в области {{ raid.rules.max_bots }}</p>
             <p>максимум роботов в области {{ raid.rules.max_players }}</p>
             {% if raid.finished_at %}
-                рейд закончен
+                <h5>Лог рейда</h5>
+                {% for item in raid.action_log %}
+                    <p>{{ item }}</p>
+                {% endfor %}
             {% else %}
                 <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">
                     {% csrf_token %}
@@ -23,19 +20,44 @@
             {% endif %}
         </div>
         <div class="col-6">
-            <h5>Замеченные роботы</h5>
-            {% for person in raid.players.all %}
-                <p>
-                    {% if person.user == user %}
-                        <a href="{% url 'persons-detail' pk=person.pk %}">
+            {% if raid.finished_at %}
+                <h5>Замеченные роботы</h5>
+                {% for item in raid.users.values %}
+                    <p>
+                        {{ item.name }} -
+                        {% if item.health > 0 %}
+                            успешно справился с заданием
+                        {% else %}
+                            пропал без вести
+                        {% endif %}
+                    </p>
+                {% endfor %}
+                <h5>Замеченные человеки</h5>
+                {% for item in raid.bots.values %}
+                    <p>
+                        {{ item.name }} -
+                        {% if item.health > 0 %}
+                            покинул зону задание живым
+                        {% else %}
+                            пропал без вести
+                        {% endif %}
+                    </p>
+                {% endfor %}
+            {% else %}
+                <h5>Замеченные роботы</h5>
+                {% for person in raid.players.all %}
+                    <p>
+                        {% if person.user == user %}
+                            <a href="{% url 'persons-detail' pk=person.pk %}">
+                                {{ person.name }}
+                            </a>
+                        {% else %}
                             {{ person.name }}
-                        </a>
-                    {% else %}
-                        {{ person.name }}
-                    {% endif %}
-                </p>
-            {% endfor %}
-            <h5>Замеченные человеки</h5>
+                        {% endif %}
+                    </p>
+                {% endfor %}
+                <h5>Замеченные человеки</h5>
+            {% endif %}
         </div>
     </div>
 

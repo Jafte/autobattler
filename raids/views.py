@@ -10,8 +10,8 @@ from raids.enums import RaidStatus
 from raids.raid import Raid as Game
 
 
-class RaidRulesListPage(TemplateView, LoginRequiredMixin):
-    template_name = "raids/rules.html"
+class RaidListPage(TemplateView, LoginRequiredMixin):
+    template_name = "raids/list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

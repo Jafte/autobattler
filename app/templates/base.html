@@ -11,7 +11,7 @@
 <nav class="navbar bg-dark border-bottom border-bottom-dark" data-bs-theme="dark">
     <div class="container">
         <a class="navbar-brand text-uppercase" href="{% url 'index' %}">Replica 300623</a>
-        <div class="d-flex mt-3">
+        <div class="d-flex">
             <ul class="navbar-nav">
                 <li class="nav-item">
                     {% if not user.is_authenticated %}
@@ -25,6 +25,15 @@
     </div>
 </nav>
 <div class="container bd-gutter mt-3 my-md-4 bd-layout">
+    <ul class="nav">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'persons-list' %}">Роботы</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'raids-list' %}">Задания</a>
+        </li>
+    </ul>
+
     {% block main %}
     {% endblock %}
 </div>
