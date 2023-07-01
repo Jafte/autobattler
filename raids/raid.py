@@ -16,6 +16,7 @@ class Raid:
     current_cycle: int
     max_cycles: int
     status: 'RaidStatus'
+    action_log: List[str]
 
     __cycle_bots: List[str]
     __cycle_players: List[str]
@@ -28,14 +29,24 @@ class Raid:
         self.current_cycle = 0
         self.max_cycles = max_cycles
         self.status = RaidStatus.NEW
+        self.action_log = []
 
     @classmethod
-    def create_from_session(cls, session: RaidSession) -> 'Raid':
+    def create_from_session(cls, session: 'RaidSession') -> 'Raid':
         raid = cls(
             max_players=session.rules.max_players,
             max_bots=session.rules.max_bots,
             max_cycles=session.rules.max_cycles,
         )
+
+        for model in session.players.all():
+            person = PlayerPerson.create(model)
+            raid.join(person)
+
+        raid_bots = random.randint(1, raid.max_bots)
+        for _ in range(raid_bots):
+            bot = BotPerson.create()
+            raid.join(bot)
 
         return raid
 
@@ -75,23 +86,6 @@ class Raid:
             return False
 
         self.status = RaidStatus.IN_PROGRESS
-        # cprint('=====================================================', 'light_grey')
-        # cprint('Рейд начинается, встречайте своих героев!', 'yellow')
-        # cprint('=====================================================', 'light_grey')
-
-        # cprint('Сегодня попытают свою удачу:', 'light_yellow')
-        # for player in self.players.values():
-        #     person_name = colored(player.name, 'white')
-        #     cprint(f"{person_name}", 'white')
-
-        # cprint('А эти парни попытаюся все испортить:', 'light_yellow')
-        # for bot in self.bots.values():
-        #     person_name = colored(bot.name, 'light_grey')
-        #     cprint(f"{person_name}", 'light_grey')
-
-        # cprint('=====================================================', 'light_grey')
-        # cprint('Посмотрим, сколько счастливчиков доберется до финала живыми!', 'yellow')
-        # cprint('=====================================================', 'light_grey')
 
         return True
 
@@ -99,30 +93,6 @@ class Raid:
         if self.status != RaidStatus.IN_PROGRESS:
             return False
         self.status = RaidStatus.FINISHED
-
-        # cprint('=====================================================', 'light_grey')
-        # cprint('Рейд закончен', 'light_yellow')
-        # cprint('=====================================================', 'light_grey')
-
-        # cprint('Игроки:', 'light_yellow')
-        # for player in self.players.values():
-        #     if player.is_alive():
-        #         person_name = colored(player.name, 'green')
-        #         cprint(f"{person_name} - выбрался живым и богаче на {player.expirience} очков опыта")
-        #     else:
-        #         person_name = colored(player.name, 'red')
-        #         cprint(f"{person_name} - сегодня не повезло")
-
-        # cprint('Боты:', 'light_yellow')
-        # for bot in self.bots.values():
-        #     if bot.is_alive():
-        #         person_name = colored(bot.name, 'green')
-        #         cprint(f"{person_name} - дожил до конца рейда, здоровье {bot.health}")
-        #     else:
-        #         person_name = colored(bot.name, 'red')
-        #         cprint(f"{person_name} - был убит")
-
-        # cprint('=====================================================')
 
         return True
 
@@ -153,11 +123,11 @@ class Raid:
 
             if met_persons:
                 pass
-                # cprint(f"{player} встречает {len(met_persons)} противников")
+                self.action_log.append(f"{player} встречает {len(met_persons)} противников")
             else:
                 if player.health < 100:
                     player.heal(random.randint(10, 20))
-                    # cprint(f"{player} спокойно похилился, здоровье {player.health}")
+                    self.action_log.append(f"{player} спокойно похилился, здоровье {player.health}")
 
             for met_person in met_persons:
                 self.fight(player, met_person)
@@ -219,7 +189,7 @@ class Raid:
                 peaceful_ending = random.random() > 0.5
 
         if peaceful_ending:
-            # cprint(f"{person_1} и {person_2} разошлись миром")
+            self.action_log.append(f"{person_1} и {person_2} разошлись миром")
             person_1.add_experience(100)
             person_1.heal(10)
             person_2.add_experience(100)
@@ -230,26 +200,25 @@ class Raid:
             hit_value = person_2.get_damage_value()
             if hit_value:
                 person_1.hit(hit_value)
-                # cprint(f"{person_2} урон по {person_1} в размере {hit_value}")
+                self.action_log.append(f"{person_2} урон по {person_1} в размере {hit_value}")
 
             hit_value = person_1.get_damage_value()
             if hit_value:
                 person_2.hit(hit_value)
-                # cprint(f"{person_1} урон по {person_2} в размере {hit_value}")
+                self.action_log.append(f"{person_1} урон по {person_2} в размере {hit_value}")
 
         if not person_1.is_alive():
             person_1.killed_by = person_2.name
-            # cprint(f"{person_1} погибает от рук {person_2}", 'light_red')
+            self.action_log.append(f"{person_1} погибает от рук {person_2}")
 
         if not person_2.is_alive():
             person_2.killed_by = person_1.name
-            # cprint(f"{person_2} погибает от рук {person_1}", 'light_red')
+            self.action_log.append(f"{person_2} погибает от рук {person_1}")
 
         if person_1.is_alive():
-            # cprint(f"{person_1} едва уцелел, здоровье {person_1.health}", 'light_green')
+            self.action_log.append(f"{person_1} едва уцелел, здоровье {person_1.health}")
             person_1.add_experience(200)
 
         if person_2.is_alive():
-            # cprint(f"{person_2} едва уцелел, здоровье {person_2.health}", 'light_green')
+            self.action_log.append(f"{person_2} едва уцелел, здоровье {person_2.health}")
             person_2.add_experience(200)
-

@@ -1,11 +1,12 @@
 import random
 import hashlib
+import json
 from .enums import PersonStatus
 from .utils import generate_random_name
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .models import UserPerson
+    from persons.models import UserPerson
 
 
 class Person:
@@ -81,7 +82,7 @@ class BotPerson(Person):
 
 class PlayerPerson(Person):
     @classmethod
-    def create(cls, model: UserPerson) -> 'Person':
+    def create(cls, model: 'UserPerson') -> 'Person':
         return cls(
             name=model.name,
             uuid=str(model.pk),

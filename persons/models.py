@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from .enums import PersonStatus
 
 if TYPE_CHECKING:
-    from .person import PlayerPerson
+    from persons.person import PlayerPerson
 
 
 class UserPerson(models.Model):

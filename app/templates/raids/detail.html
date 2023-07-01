@@ -1,0 +1,42 @@
+{% extends  'base.html' %}
+
+{% block main %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'raids-rules' %}">Задания</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ raid.rules.title }} #{{ raid.pk }}</li>
+        </ol>
+    </nav>
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <h5>{{ raid.rules.title }} #{{ raid.pk }}</h5>
+            <p>{{ raid.rules.description }}</p>
+            <p>максимум человеков в области {{ raid.rules.max_bots }}</p>
+            <p>максимум роботов в области {{ raid.rules.max_players }}</p>
+            {% if raid.finished_at %}
+                рейд закончен
+            {% else %}
+                <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button class="btn btn-primary justify-content">запустить</button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="col-6">
+            <h5>Замеченные роботы</h5>
+            {% for person in raid.players.all %}
+                <p>
+                    {% if person.user == user %}
+                        <a href="{% url 'persons-detail' pk=person.pk %}">
+                            {{ person.name }}
+                        </a>
+                    {% else %}
+                        {{ person.name }}
+                    {% endif %}
+                </p>
+            {% endfor %}
+            <h5>Замеченные человеки</h5>
+        </div>
+    </div>
+
+{% endblock %}
