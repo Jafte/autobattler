@@ -5,9 +5,9 @@ from django.shortcuts import redirect
 from django.http import Http404
 from persons.enums import PersonStatus
 from persons.models import UserPerson
-from raids.models import RaidSession
+from raids.models import UserRaid
 from raids.enums import RaidStatus
-from raids.raid import Raid as Game
+from gameplay.raid.standard import GameplayRaid
 
 
 class RaidListPage(TemplateView, LoginRequiredMixin):
@@ -15,8 +15,8 @@ class RaidListPage(TemplateView, LoginRequiredMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["new_raids"] = RaidSession.objects.filter(status=RaidStatus.NEW)
-        context["finished_raids"] = RaidSession.objects.filter(status=RaidStatus.FINISHED)
+        context["new_raids"] = UserRaid.objects.filter(status=RaidStatus.NEW)
+        context["finished_raids"] = UserRaid.objects.filter(status=RaidStatus.FINISHED)
         return context
 
 
@@ -26,8 +26,8 @@ class RaidSessionPage(TemplateView, LoginRequiredMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
-            context["raid"] = RaidSession.objects.get(pk=kwargs["pk"])
-        except RaidSession.DoesNotExist:
+            context["raid"] = UserRaid.objects.get(pk=kwargs["pk"])
+        except UserRaid.DoesNotExist:
             raise Http404("Raid does not exist")
         return context
 
@@ -41,8 +41,8 @@ class RaidSessionJoinPage(View, LoginRequiredMixin):
             raise Http404("Person does not exist")
 
         try:
-            raid = RaidSession.objects.get(pk=kwargs["pk"], status=RaidStatus.NEW)
-        except RaidSession.DoesNotExist:
+            raid = UserRaid.objects.get(pk=kwargs["pk"], status=RaidStatus.NEW)
+        except UserRaid.DoesNotExist:
             raise Http404("Raid does not exist")
 
         person.raid_session = raid
@@ -54,17 +54,17 @@ class RaidSessionJoinPage(View, LoginRequiredMixin):
 class RaidSessionStartPage(View, LoginRequiredMixin):
     def post(self, request, *args, **kwargs):
         try:
-            raid = RaidSession.objects.get(pk=kwargs["pk"], status=RaidStatus.NEW)
-        except RaidSession.DoesNotExist:
+            user_raid = UserRaid.objects.get(pk=kwargs["pk"], status=RaidStatus.NEW)
+        except UserRaid.DoesNotExist:
             raise Http404("Raid does not exist")
 
-        raid.status = RaidStatus.IN_PROGRESS
-        raid.save()
+        user_raid.status = RaidStatus.IN_PROGRESS
+        user_raid.save()
 
-        game = Game.create_from_session(raid)
+        game = GameplayRaid.create_from_user_raid(user_raid)
         game.start()
         game.play()
 
-        raid.update_from_raid(game)
+        user_raid.update_from_raid(game)
 
-        return redirect("raids-detail", pk=raid.pk)
+        return redirect("raids-detail", pk=user_raid.pk)

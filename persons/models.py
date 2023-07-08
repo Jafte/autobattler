@@ -1,31 +1,23 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from raids.models import RaidSession
+from raids.models import UserRaid
 from typing import TYPE_CHECKING
 from .enums import PersonStatus
 
 if TYPE_CHECKING:
-    from persons.person import PlayerPerson
+    from gameplay.person import GameplayPersonPlayer
 
 
 class UserPerson(models.Model):
-    STATUS_DEAD = 0
-    STATUS_ALIVE = 1
-    STATUSES = (
-        (STATUS_DEAD, 'dead'),
-        (STATUS_ALIVE, 'alive'),
-    )
-
     user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     status = models.SmallIntegerField(choices=PersonStatus.choices, default=PersonStatus.ALIVE)
     health = models.SmallIntegerField(default=100)
-    stamina = models.SmallIntegerField(default=100)
     experience = models.BigIntegerField(default=0)
 
     raid_session = models.ForeignKey(
-        to=RaidSession,
+        to=UserRaid,
         on_delete=models.PROTECT,
         related_name='players',
         blank=True, null=True
@@ -39,12 +31,11 @@ class UserPerson(models.Model):
     def __str__(self):
         return self.name
 
-    def update_from_raid(self, person: 'PlayerPerson'):
-        self.status = person.status
-        self.health = person.health
-        self.stamina = person.stamina
-        self.experience += person.experience
+    def update_from_raid(self, gameplay_person: 'GameplayPersonPlayer'):
+        self.status = gameplay_person.status
+        self.health = gameplay_person.health
+        self.experience += gameplay_person.experience
 
         if self.status == PersonStatus.DEAD:
             self.died_at = timezone.now()
-            self.epitaph = f"Убит {person.killed_by}"
+            self.epitaph = f"Убит {gameplay_person.killed_by}"

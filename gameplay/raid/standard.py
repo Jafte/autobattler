@@ -1,17 +1,17 @@
 import random
 
-from persons.person import Person, BotPerson, PlayerPerson
+from gameplay.person import GameplayPersonBase, GameplayPersonBot, GameplayPersonPlayer
 from typing import Dict, List
-from .enums import RaidStatus
+from raids.enums import RaidStatus
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .models import RaidSession
+    from raids.models import UserRaid
 
 
-class Raid:
-    players: Dict[str, PlayerPerson]
+class GameplayRaid:
+    players: Dict[str, GameplayPersonPlayer]
     max_players: int
-    bots: Dict[str, BotPerson]
+    bots: Dict[str, GameplayPersonBot]
     max_bots: int
     current_cycle: int
     max_cycles: int
@@ -32,20 +32,20 @@ class Raid:
         self.action_log = []
 
     @classmethod
-    def create_from_session(cls, session: 'RaidSession') -> 'Raid':
+    def create_from_user_raid(cls, user_raid: 'UserRaid') -> 'GameplayRaid':
         raid = cls(
-            max_players=session.rules.max_players,
-            max_bots=session.rules.max_bots,
-            max_cycles=session.rules.max_cycles,
+            max_players=user_raid.rules.get('max_players', 5),
+            max_bots=user_raid.rules.get('max_bots', 20),
+            max_cycles=user_raid.rules.get('max_cycles', 100),
         )
 
-        for model in session.players.all():
-            person = PlayerPerson.create(model)
+        for model in user_raid.players.all():
+            person = GameplayPersonPlayer.create(model)
             raid.join(person)
 
         raid_bots = random.randint(1, raid.max_bots)
         for _ in range(raid_bots):
-            bot = BotPerson.create()
+            bot = GameplayPersonBot.create()
             raid.join(bot)
 
         return raid
@@ -56,25 +56,25 @@ class Raid:
     def __repr__(self) -> str:
         return f"Raid [{self.status.name}]"
 
-    def join(self, person: Person) -> bool:
+    def join(self, person: GameplayPersonBase) -> bool:
         if self.status != RaidStatus.NEW:
             return False
 
-        if isinstance(person, PlayerPerson):
+        if isinstance(person, GameplayPersonPlayer):
             return self.__join_player(person)
-        if isinstance(person, BotPerson):
+        if isinstance(person, GameplayPersonBot):
             return self.__join_bot(person)
 
         return False
 
-    def __join_player(self, player: PlayerPerson) -> bool:
+    def __join_player(self, player: GameplayPersonPlayer) -> bool:
         if len(self.players) >= self.max_players:
             return False
         if player.uuid not in self.players:
             self.players[player.uuid] = player
         return True
 
-    def __join_bot(self, bot: BotPerson) -> bool:
+    def __join_bot(self, bot: GameplayPersonBot) -> bool:
         if len(self.bots) >= self.max_bots:
             return False
         if bot.uuid not in self.bots:
@@ -139,19 +139,19 @@ class Raid:
         else:
             self.finish()
 
-    def get_met_persons(self, person: Person) -> List[Person]:
-        if isinstance(person, PlayerPerson):
+    def get_met_persons(self, person: GameplayPersonBase) -> List[GameplayPersonBase]:
+        if isinstance(person, GameplayPersonPlayer):
             met_players = self.__get_met_players(person)
             met_bots = self.__get_met_bots(person)
             return [*met_players, *met_bots]
 
         return []
 
-    def __get_met_players(self, player: Person) -> List[PlayerPerson]:
+    def __get_met_players(self, player: GameplayPersonBase) -> List[GameplayPersonPlayer]:
         if random.random() > 0.2:
             return []
 
-        met_players: List[PlayerPerson] = []
+        met_players: List[GameplayPersonPlayer] = []
 
         for other_player_key in self.__cycle_players:
             other_player = self.players[other_player_key]
@@ -164,11 +164,11 @@ class Raid:
 
         return met_players
 
-    def __get_met_bots(self, player: Person) -> List[BotPerson]:
+    def __get_met_bots(self, player: GameplayPersonBase) -> List[GameplayPersonBot]:
         if random.random() > 0.3:
             return []
 
-        met_bots: List[BotPerson] = []
+        met_bots: List[GameplayPersonBot] = []
 
         for bot_key in self.__cycle_bots:
             bot = self.bots[bot_key]
@@ -181,11 +181,11 @@ class Raid:
 
         return met_bots
 
-    def fight(self, person_1: Person, person_2: Person) -> None:
+    def fight(self, person_1: GameplayPersonBase, person_2: GameplayPersonBase) -> None:
         peaceful_ending = 1
-        if isinstance(person_1, PlayerPerson) or isinstance(person_2, PlayerPerson):
+        if isinstance(person_1, GameplayPersonPlayer) or isinstance(person_2, GameplayPersonPlayer):
             peaceful_ending = 0
-            if isinstance(person_1, PlayerPerson) and isinstance(person_2, PlayerPerson):
+            if isinstance(person_1, GameplayPersonPlayer) and isinstance(person_2, GameplayPersonPlayer):
                 peaceful_ending = random.random() > 0.5
 
         if peaceful_ending:

@@ -7,7 +7,7 @@ from persons.models import UserPerson
 from persons.enums import PersonStatus
 from persons.utils import generate_random_name
 from raids.enums import RaidStatus
-from raids.models import RaidSession
+from raids.models import UserRaid
 
 
 class PersonsListPage(TemplateView, LoginRequiredMixin):
@@ -29,7 +29,7 @@ class PersonPage(TemplateView, LoginRequiredMixin):
             context["person"] = UserPerson.objects.get(pk=kwargs["pk"], user=self.request.user)
         except UserPerson.DoesNotExist:
             raise Http404("Dall does not exist")
-        context["raids"] = RaidSession.objects.filter(status=RaidStatus.NEW)
+        context["raids"] = UserRaid.objects.filter(status=RaidStatus.NEW)
         return context
 
 

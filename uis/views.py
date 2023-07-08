@@ -7,5 +7,5 @@ class IndexPage(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return redirect("persons-list")
+            return redirect("factory-detail")
         return super().dispatch(request, *args, **kwargs)
