@@ -122,7 +122,6 @@ class GameplayRaid:
             met_persons = self.get_met_persons(player)
 
             if met_persons:
-                pass
                 self.action_log.append(f"{player} встречает {len(met_persons)} противников")
             else:
                 if player.health < 100:
