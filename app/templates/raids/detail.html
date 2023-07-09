@@ -3,25 +3,31 @@
 {% block main %}
     <div class="row justify-content-center">
         <div class="col-6">
-            <h5>{{ raid.rules.title }} #{{ raid.pk }}</h5>
+            <h2>{{ raid.rules.title }} #{{ raid.pk }}</h2>
+            <hr/>
             <p>{{ raid.rules.description }}</p>
-            <p>максимум человеков в области {{ raid.rules.max_bots }}</p>
-            <p>максимум роботов в области {{ raid.rules.max_players }}</p>
+            <ul>
+                <li>максимум человеков в области {{ raid.rules.max_bots }}</li>
+                <li>максимум роботов в области {{ raid.rules.max_players }}</li>
+            </ul>
+            <hr/>
             {% if raid.finished_at %}
-                <h5>Лог рейда</h5>
+                <h2>Лог рейда</h2>
+                <hr/>
                 {% for item in raid.action_log %}
                     <p>{{ item }}</p>
                 {% endfor %}
             {% else %}
                 <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">
                     {% csrf_token %}
-                    <button class="btn btn-primary justify-content">запустить</button>
+                    <button class="btn btn-warning justify-content">запустить</button>
                 </form>
             {% endif %}
         </div>
         <div class="col-6">
             {% if raid.finished_at %}
-                <h5>Замеченные роботы</h5>
+                <h2>Замеченные роботы</h2>
+                <hr/>
                 {% for item in raid.users.values %}
                     <p>
                         {{ item.name }} -
@@ -32,7 +38,9 @@
                         {% endif %}
                     </p>
                 {% endfor %}
-                <h5>Замеченные человеки</h5>
+                <hr/>
+                <h2>Замеченные человеки</h2>
+                <hr/>
                 {% for item in raid.bots.values %}
                     <p>
                         {{ item.name }} -
@@ -44,7 +52,8 @@
                     </p>
                 {% endfor %}
             {% else %}
-                <h5>Замеченные роботы</h5>
+                <h2>Замеченные роботы</h2>
+                <hr/>
                 {% for person in raid.players.all %}
                     <p>
                         {% if person.user == user %}
@@ -56,6 +65,7 @@
                         {% endif %}
                     </p>
                 {% endfor %}
+                <hr/>
                 <h5>Замеченные человеки</h5>
             {% endif %}
         </div>

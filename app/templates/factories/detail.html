@@ -18,6 +18,20 @@
                 Каждый робот, произведенный на этом заводе, полностью прекрасен. Кроме тех экземпляров,
                 которые специально ужасны, чтобы отпугивать людей. Но они так же прекрасны, просто по своему.
             </p>
+            <ul>
+                <li>
+                    Лимит на обслуживание: {{ factory.active_user_person_limit }}
+                </li>
+                <li>
+                    Скорость ремонта: -
+                </li>
+                <li>
+                    Линии сборки дополнительного оборудования: отсутствуют
+                </li>
+                <li>
+                    Тренировочные полигоны: отсутствуют
+                </li>
+            </ul>
         </div>
         <div class="col-6">
             <h2>Доступные к производству роботы</h2>
@@ -47,8 +61,16 @@
                             </ul>
                         </div>
                         <div class="card-footer text-body-secondary ">
-                            <div class="d-grid gap-2 col-6 mx-auto">
-                                <a href="#" class="btn btn-primary">собрать</a>
+                            <div class="d-grid gap-2 col-8 mx-auto text-center">
+                                {% if factory.can_create_robots %}
+                                    <form action="{% url 'factory-detail' %}" method="POST">
+                                        {% csrf_token %}
+                                        <button class="btn btn-success justify-content">собрать</button>
+                                    </form>
+                                {% else %}
+                                    <span class="btn btn-secondary disabled" role="button" aria-disabled="true">собрать</span>
+                                    <span class="small text-danger">достигнут лимит активных роботов</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

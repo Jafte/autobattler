@@ -30,8 +30,10 @@
                         </a>
                     </div>
                     <div class="card-body">
-                        <p>человеков {{ raid.bots|length }}</p>
-                        <p>роботов {{ raid.users|length }}</p>
+                        <ul>
+                            <li>человеков {{ raid.bots|length }}</li>
+                            <li>роботов {{ raid.users|length }}</li>
+                        </ul>
                     </div>
                 </div>
             {% endfor %}

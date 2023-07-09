@@ -4,8 +4,8 @@
     <div class="row justify-content-center">
         <div class="col-6">
             <h2>{{ person.name }}</h2>
+            <hr/>
             <p>Здоровье {{ person.health }}</p>
-            <p>Выносливость {{ person.stamina }}</p>
             {% if person.raid_session %}
                 <p>Собирается на задание</p>
             {% else %}
@@ -13,7 +13,8 @@
             {% endif %}
         </div>
         <div class="col-6">
-            <h5>Доступные рейды</h5>
+            <h2>Доступные рейды</h2>
+            <hr/>
             {% for raid in raids %}
                 <div class="card">
                     <div class="h5 card-header">
@@ -26,15 +27,17 @@
                         <p class="card-text">максимум роботов в области {{ raid.rules.max_players }}</p>
                     </div>
                     <div class="card-footer text-body-secondary">
-                        {% if person.raid_session == raid %}
-                            это ваше задание
-                        {% else %}
-                            <form class="d-grid gap-2" action="{% url 'raids-detail-join' pk=raid.pk %}" method="POST">
-                                {% csrf_token %}
-                                <input name="person_pk" type="hidden" value="{{ person.pk }}">
-                                <button class="btn btn-primary justify-content">присоединиться</button>
-                            </form>
-                        {% endif %}
+                        <div class="d-grid gap-2 col-8 mx-auto text-center">
+                            {% if person.raid_session == raid %}
+                                это ваше задание
+                            {% else %}
+                                <form action="{% url 'raids-detail-join' pk=raid.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input name="person_pk" type="hidden" value="{{ person.pk }}">
+                                    <button class="btn btn-primary justify-content">присоединиться</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}

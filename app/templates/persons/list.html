@@ -3,17 +3,7 @@
 {% block main %}
     <div class="row justify-content-center">
         <div class="col-6">
-            <div class="row">
-                <div class="col-10">
-                    <div class="h2">Функцианируют</div>
-                </div>
-                <div class="col justify-content-center">
-                    <form class="d-grid gap-2" action="{% url 'persons-create' %}" method="POST">
-                        {% csrf_token %}
-                        <button class="btn btn-success justify-content">Новый</button>
-                    </form>
-                </div>
-            </div>
+            <div class="h2">Функцианируют</div>
             <hr/>
             {% for person in alive_persons %}
                 <div class="row">
@@ -31,17 +21,16 @@
                                 </a>
                             </div>
                             <div class="card-body">
-                                <p class="card-text">Здоровье {{ person.health }}</p>
-                                <p class="card-text">Выносливость {{ person.stamina }}</p>
-                                <p class="card-text">Опыта {{ person.experience }}</p>
+                                <ul class="card-text">
+                                    <li>Здоровье {{ person.health }}</li>
+                                    <li>Опыт {{ person.experience }}</li>
+                                </ul>
                             </div>
                             <div class="card-footer text-body-secondary">
                                 {% if person.raid_session %}
-                                    собирается на задание
+                                    <span class="badge text-bg-warning">собирается на задание</span>
                                 {% else %}
-                                    <a href="{% url 'persons-detail' pk=person.pk %}" class="btn btn-primary">отправить
-                                        на
-                                        задание</a>
+                                    <span class="badge text-bg-success">свободен</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -50,11 +39,7 @@
             {% endfor %}
         </div>
         <div class="col-6">
-            <div class="row">
-                <div class="col-12">
-                    <h2>Уничтожены</h2>
-                </div>
-            </div>
+            <h2>Уничтожены</h2>
             <hr/>
             {% for person in dead_persons %}
                 <div class="card my-2">

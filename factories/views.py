@@ -1,6 +1,9 @@
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
 from .models import UserFactory
+from persons.models import UserPerson
+from persons.utils import generate_random_name
 
 
 class FactoryPage(TemplateView, LoginRequiredMixin):
@@ -21,3 +24,11 @@ class FactoryPage(TemplateView, LoginRequiredMixin):
 
         context["factory"] = factory
         return context
+
+    def post(self, request, *args, **kwargs):
+        person = UserPerson(
+            name=generate_random_name(),
+            user=self.request.user,
+        )
+        person.save()
+        return redirect("persons-detail", pk=person.pk)
