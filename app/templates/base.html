@@ -25,19 +25,20 @@
     </div>
 </nav>
 <div class="container bd-gutter mt-3 my-md-4 bd-layout">
-    <ul class="nav justify-content-center">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'factory-detail' %}">Завод</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'persons-list' %}">Роботы</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'raids-list' %}">Задания</a>
-        </li>
-    </ul>
-    <hr/>
-
+    {% if user.is_authenticated %}
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'factory-detail' %}">Завод</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'persons-list' %}">Роботы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'raids-list' %}">Задания</a>
+            </li>
+        </ul>
+        <hr/>
+    {% endif %}
     {% block main %}
     {% endblock %}
 </div>

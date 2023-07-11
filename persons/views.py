@@ -7,7 +7,7 @@ from raids.enums import RaidStatus
 from raids.models import UserRaid
 
 
-class PersonsListPage(TemplateView, LoginRequiredMixin):
+class PersonsListPage(LoginRequiredMixin, TemplateView):
     template_name = "persons/list.html"
 
     def get_context_data(self, **kwargs):
@@ -17,7 +17,7 @@ class PersonsListPage(TemplateView, LoginRequiredMixin):
         return context
 
 
-class PersonPage(TemplateView, LoginRequiredMixin):
+class PersonPage(LoginRequiredMixin, TemplateView):
     template_name = "persons/detail.html"
 
     def get_context_data(self, **kwargs):

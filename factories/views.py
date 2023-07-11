@@ -6,7 +6,7 @@ from persons.models import UserPerson
 from persons.utils import generate_random_name
 
 
-class FactoryPage(TemplateView, LoginRequiredMixin):
+class FactoryPage(LoginRequiredMixin, TemplateView):
     template_name = "factories/detail.html"
 
     def get_context_data(self, **kwargs):

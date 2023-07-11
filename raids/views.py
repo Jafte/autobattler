@@ -10,7 +10,7 @@ from raids.enums import RaidStatus
 from gameplay.raid.standard import GameplayRaid
 
 
-class RaidListPage(TemplateView, LoginRequiredMixin):
+class RaidListPage(LoginRequiredMixin, TemplateView):
     template_name = "raids/list.html"
 
     def get_context_data(self, **kwargs):
@@ -20,7 +20,7 @@ class RaidListPage(TemplateView, LoginRequiredMixin):
         return context
 
 
-class RaidSessionPage(TemplateView, LoginRequiredMixin):
+class RaidSessionPage(LoginRequiredMixin, TemplateView):
     template_name = "raids/detail.html"
 
     def get_context_data(self, **kwargs):
@@ -32,7 +32,7 @@ class RaidSessionPage(TemplateView, LoginRequiredMixin):
         return context
 
 
-class RaidSessionJoinPage(View, LoginRequiredMixin):
+class RaidSessionJoinPage(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         person_pk = request.POST.get('person_pk')
         try:
@@ -51,7 +51,7 @@ class RaidSessionJoinPage(View, LoginRequiredMixin):
         return redirect("raids-detail", pk=raid.pk)
 
 
-class RaidSessionStartPage(View, LoginRequiredMixin):
+class RaidSessionStartPage(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             user_raid = UserRaid.objects.get(pk=kwargs["pk"], status=RaidStatus.NEW)

@@ -39,3 +39,13 @@ class UserPerson(models.Model):
         if self.status == PersonStatus.DEAD:
             self.died_at = timezone.now()
             self.epitaph = f"Убит {gameplay_person.killed_by}"
+
+
+class UserPersonRaid(models.Model):
+    person = models.ForeignKey(to=UserPerson, on_delete=models.CASCADE)
+    raid = models.ForeignKey(to=UserRaid, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.person} on {self.raid}"
