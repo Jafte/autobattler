@@ -15,8 +15,21 @@ class RaidListPage(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["new_raids"] = UserRaid.objects.filter(status=RaidStatus.NEW)
-        context["finished_raids"] = UserRaid.objects.filter(status=RaidStatus.FINISHED)
+        new_raids = UserRaid.objects.filter(status=RaidStatus.NEW)
+        if not new_raids.count():
+            new_raid = UserRaid(
+                rules={
+                    "max_players": 5,
+                    "max_bots": 5,
+                    "max_cycles": 10,
+                    "title": "Обычное задание",
+                    "description": "Обычное, ничем не примечательное задание"
+                }
+            )
+            new_raid.save()
+            new_raids = UserRaid.objects.filter(status=RaidStatus.NEW)
+        context["new_raids"] = new_raids
+        context["finished_raids"] = UserRaid.objects.filter(status=RaidStatus.FINISHED).order_by('-id')[:10]
         return context
 
 

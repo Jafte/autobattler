@@ -13,7 +13,7 @@ class PersonsListPage(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["alive_persons"] = UserPerson.objects.filter(user=self.request.user, status=PersonStatus.ALIVE)
-        context["dead_persons"] = UserPerson.objects.filter(user=self.request.user, status=PersonStatus.DEAD)
+        context["dead_persons"] = UserPerson.objects.filter(user=self.request.user, status=PersonStatus.DEAD).order_by('-id')[:10]
         return context
 
 

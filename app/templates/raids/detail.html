@@ -18,10 +18,10 @@
                     <p>{{ item }}</p>
                 {% endfor %}
             {% else %}
-                <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">
-                    {% csrf_token %}
-                    <button class="btn btn-warning justify-content">запустить</button>
-                </form>
+{#                <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">#}
+{#                    {% csrf_token %}#}
+{#                    <button class="btn btn-warning justify-content">запустить</button>#}
+{#                </form>#}
             {% endif %}
         </div>
         <div class="col-6">
@@ -64,9 +64,18 @@
                             {{ person.name }}
                         {% endif %}
                     </p>
+                {% empty %}
+                    <p>
+                        Погрузочные камеры пустуют
+                    </p>
                 {% endfor %}
                 <hr/>
-                <h5>Замеченные человеки</h5>
+                <h2>Замеченные человеки</h2>
+                <hr/>
+                <p>
+                    Информация отсутствует
+                </p>
+                <hr/>
             {% endif %}
         </div>
     </div>

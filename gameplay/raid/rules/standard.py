@@ -1,0 +1,4 @@
+
+
+class Standard():
+    pass

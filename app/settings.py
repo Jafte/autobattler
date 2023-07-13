@@ -35,6 +35,7 @@ INSTALLED_APPS = [
 
     'crispy_forms',
     'crispy_bootstrap5',
+    'huey.contrib.djhuey',
 
     'accounts',
     'factories',
@@ -132,3 +133,25 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 LOGIN_REDIRECT_URL = '/'
+
+HUEY = {
+    'huey_class': 'huey.SqliteHuey',
+    'connection': {
+        'filename': BASE_DIR / 'db.sqlite3',
+    },
+    'name': 'app',
+    'results': False,
+    'immediate': False,
+    'utc': True,
+    'consumer': {
+        'workers': 1,
+        'worker_type': 'thread',
+        'initial_delay': 0.1,  # Smallest polling interval, same as -d.
+        'backoff': 1.15,  # Exponential backoff using this rate, -b.
+        'max_delay': 10.0,  # Max possible polling interval, -m.
+        'scheduler_interval': 1,  # Check schedule every second, -s.
+        'periodic': True,  # Enable crontab feature.
+        'check_worker_health': True,  # Enable worker health checks.
+        'health_check_interval': 1,  # Check worker health every second.
+    },
+}
