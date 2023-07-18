@@ -158,3 +158,5 @@ HUEY = {
         'health_check_interval': 1,  # Check worker health every second.
     },
 }
+
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')

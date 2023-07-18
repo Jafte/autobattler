@@ -1,9 +1,13 @@
 from django.contrib.auth import views
 from django.urls import path
 
+from accounts.views import AuthTelegramView
+
+
 urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('iamrobot/', AuthTelegramView.as_view(), name='telegram-auth'),
     # path('password-change/', views.PasswordChangeView.as_view(), name='password_change'),
     # path('password-change/done/', views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     # path('password-reset/', views.PasswordResetView.as_view(), name='password_reset'),

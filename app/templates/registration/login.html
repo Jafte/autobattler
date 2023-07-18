@@ -7,16 +7,18 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title text-center">Докажите, что вы Робот</h4>
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-
-                        {{ form|crispy }}
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-block">Бип бип боп бип</button>
-                        </div>
-                    </form>
+                    <script async src="https://telegram.org/js/telegram-widget.js?22"
+                            data-telegram-login="replica300623_auth_bot" data-size="medium"
+                            data-auth-url="https://jafte.pythonanywhere.com/accounts/iamrobot"></script>
+                    {#                    <form method="post">#}
+                    {#                        {% csrf_token %}#}
+                    {#                        <input type="hidden" name="next" value="{{ next }}">#}
+                    {##}
+                    {#                        {{ form|crispy }}#}
+                    {#                        <div class="d-grid gap-2">#}
+                    {#                            <button type="submit" class="btn btn-primary btn-block">Бип бип боп бип</button>#}
+                    {#                        </div>#}
+                    {#                    </form>#}
                 </div>
             </div>
         </div>
