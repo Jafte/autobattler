@@ -18,6 +18,10 @@ class AuthTelegramView(View):
         received_hash = request_data.get('hash', '')
         auth_date = request_data.get('auth_date', '')
 
+        if not received_hash or not auth_date:
+            messages.add_message(request, messages.ERROR, "Ты не робот :(")
+            return redirect("login")
+
         request_data.pop('hash', None)
         request_data_alphabetical_order = sorted(request_data.items(), key=lambda x: x[0])
 
