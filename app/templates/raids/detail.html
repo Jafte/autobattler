@@ -1,15 +1,24 @@
 {% extends  'base.html' %}
 
+{% load static %}
+
 {% block main %}
     <div class="row justify-content-center">
         <div class="col-md-6 col-12">
             <h2>{{ raid.rules.title }} #{{ raid.pk }}</h2>
             <hr/>
-            <p>{{ raid.rules.description }}</p>
-            <ul>
-                <li>максимум человеков в области {{ raid.rules.max_bots }}</li>
-                <li>максимум роботов в области {{ raid.rules.max_players }}</li>
-            </ul>
+            <div class="row">
+                <div class="col-md-4 col-12">
+                    <img src="{% static 'img/raid-normal.png' %}" class="col-12" alt="...">
+                </div>
+                <div class="col-md-8 col-12">
+                    <p>{{ raid.rules.description }}</p>
+                    <ul>
+                        <li>максимум человеков в области {{ raid.rules.max_bots }}</li>
+                        <li>максимум роботов в области {{ raid.rules.max_players }}</li>
+                    </ul>
+                </div>
+            </div>
             <hr/>
             {% if raid.finished_at %}
                 <h2>Лог рейда</h2>
@@ -18,10 +27,29 @@
                     <p>{{ item }}</p>
                 {% endfor %}
             {% else %}
-{#                <form action="{% url 'raids-detail-start' pk=raid.pk %}" method="POST">#}
-{#                    {% csrf_token %}#}
-{#                    <button class="btn btn-warning justify-content">запустить</button>#}
-{#                </form>#}
+                {% if persons %}
+                    <form class="mb-3" action="{% url 'raids-detail-join' pk=raid.pk %}" method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="person_pk" class="form-label">Отправить на задание</label>
+                            </div>
+                            <div class="col-md-8 col-12">
+                                <select class="form-select" name="person_pk">
+                                    <option value="">-- выберите робота --</option>
+                                    {% for person in persons %}
+                                        <option value="{{ person.pk }}">{{ person.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <button class="btn btn-primary col-12">отправить</button>
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>Вам некого отправить на это задание</p>
+                {% endif %}
             {% endif %}
         </div>
         <div class="col-md-6 col-12">
@@ -30,7 +58,7 @@
                 <hr/>
                 {% for item in raid.users.values %}
                     <p>
-                        {{ item.name }} -
+                        <strong>{{ item.name }}</strong> -
                         {% if item.health > 0 %}
                             успешно справился с заданием
                         {% else %}
@@ -43,7 +71,7 @@
                 <hr/>
                 {% for item in raid.bots.values %}
                     <p>
-                        {{ item.name }} -
+                        <strong>{{ item.name }}</strong> -
                         {% if item.health > 0 %}
                             покинул зону задание живым
                         {% else %}
@@ -61,7 +89,7 @@
                                 {{ person.name }}
                             </a>
                         {% else %}
-                            {{ person.name }}
+                            <strong>{{ person.name }}</strong>
                         {% endif %}
                     </p>
                 {% empty %}

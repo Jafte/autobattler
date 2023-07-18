@@ -26,7 +26,12 @@
                                         <li>Опыт {{ person.experience }}</li>
                                     </ul>
                                     {% if person.raid_session %}
-                                        <span class="badge text-bg-warning">собирается на задание</span>
+                                        <span class="badge text-bg-warning">
+                                            собирается на задание
+                                            <a href="{% url 'raids-detail' person.raid_session.pk %}">
+                                                "{{ person.raid_session.rules.title }}"
+                                            </a>
+                                        </span>
                                     {% else %}
                                         <span class="badge text-bg-success">свободен</span>
                                     {% endif %}

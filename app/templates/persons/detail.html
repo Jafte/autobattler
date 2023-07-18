@@ -6,41 +6,23 @@
             <h2>{{ person.name }}</h2>
             <hr/>
             <p>Здоровье {{ person.health }}</p>
+            <p>Опыт {{ person.experience }}</p>
             {% if person.raid_session %}
-                <p>Собирается на задание</p>
+                <p class="badge text-bg-warning">
+                    Собирается на задание
+                    <a href="{% url 'raids-detail' person.raid_session.pk %}">
+                        "{{ person.raid_session.rules.title }}"
+                    </a>
+                </p>
             {% else %}
-                <p>Находится на базе</p>
+                <p class="badge text-bg-success">
+                    Находится на базе
+                </p>
             {% endif %}
         </div>
         <div class="col-md-6 col-12">
-            <h2>Доступные рейды</h2>
+            <h2>Инвентарь</h2>
             <hr/>
-            {% for raid in raids %}
-                <div class="card">
-                    <div class="h5 card-header">
-                        <a href="{% url 'raids-detail' pk=raid.pk %}">
-                            {{ raid.rules.title }}
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">максимум человеков в области {{ raid.rules.max_bots }}</p>
-                        <p class="card-text">максимум роботов в области {{ raid.rules.max_players }}</p>
-                    </div>
-                    <div class="card-footer text-body-secondary">
-                        <div class="d-grid gap-2 col-8 mx-auto text-center">
-                            {% if person.raid_session == raid %}
-                                это ваше задание
-                            {% else %}
-                                <form action="{% url 'raids-detail-join' pk=raid.pk %}" method="POST">
-                                    {% csrf_token %}
-                                    <input name="person_pk" type="hidden" value="{{ person.pk }}">
-                                    <button class="btn btn-primary justify-content">присоединиться</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
         </div>
     </div>
 {% endblock %}

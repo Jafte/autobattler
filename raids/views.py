@@ -42,6 +42,11 @@ class RaidSessionPage(LoginRequiredMixin, TemplateView):
             context["raid"] = UserRaid.objects.get(pk=kwargs["pk"])
         except UserRaid.DoesNotExist:
             raise Http404("Raid does not exist")
+        context["persons"] = UserPerson.objects.filter(
+            user=self.request.user, status=PersonStatus.ALIVE
+        ).exclude(
+            raid_session=context["raid"]
+        )
         return context
 
 
