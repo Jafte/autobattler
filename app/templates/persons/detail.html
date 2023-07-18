@@ -2,7 +2,7 @@
 
 {% block main %}
     <div class="row justify-content-center">
-        <div class="col-6">
+        <div class="col-md-6 col-12">
             <h2>{{ person.name }}</h2>
             <hr/>
             <p>Здоровье {{ person.health }}</p>
@@ -12,7 +12,7 @@
                 <p>Находится на базе</p>
             {% endif %}
         </div>
-        <div class="col-6">
+        <div class="col-md-6 col-12">
             <h2>Доступные рейды</h2>
             <hr/>
             {% for raid in raids %}
