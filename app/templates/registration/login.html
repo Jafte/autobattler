@@ -1,24 +1,38 @@
 {% extends  'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags static %}
 
 {% block main %}
     <div class="row justify-content-center">
-        <div class="col-md-4 col-10">
+        <div class="col-lg-6 col-12">
+            <img src="{% static 'img/login.webp' %}" width="100%" />
+        </div>
+        <div class="col-lg-6 col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title text-center">Докажите, что вы Робот</h4>
-                    <script async src="https://telegram.org/js/telegram-widget.js?22"
-                            data-telegram-login="replica300623_auth_bot" data-size="medium"
-                            data-auth-url="https://jafte.pythonanywhere.com/accounts/iamrobot"></script>
-                    {#                    <form method="post">#}
-                    {#                        {% csrf_token %}#}
-                    {#                        <input type="hidden" name="next" value="{{ next }}">#}
-                    {##}
-                    {#                        {{ form|crispy }}#}
-                    {#                        <div class="d-grid gap-2">#}
-                    {#                            <button type="submit" class="btn btn-primary btn-block">Бип бип боп бип</button>#}
-                    {#                        </div>#}
-                    {#                    </form>#}
+                    <h4 class="card-title text-center">
+                        Вперед, боец!
+                    </h4>
+                    <p class="text-center">
+                        Эти глупые машины еще не знают с кем они связались!
+                    </p>
+                    <form method="post" class="mb-5">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
+{#                        {{ form|crispy }}#}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                Спасти Человечество! *
+                            </button>
+                        </div>
+                    </form>
+                    <p class="text-black-50 text-center" style="font-size: 10px">
+                        * Нажимая данную кнопку Я настоящим освобождаю организаторов, спонсоров,
+                        партнеров и всех причастных к организации и проведению мероприятий
+                        по спасению человечества (далее совместно – «Организаторы»)
+                        от любых претензий, требований, исков или обязательств любого характера,
+                        известных или неизвестных, возникающих в результате или в связи с моим участием в мероприятиях
+                        по спасению человечества, включая, без ограничений, претензии за травмы, ущерб, убытки или смерть
+                    </p>
                 </div>
             </div>
         </div>
