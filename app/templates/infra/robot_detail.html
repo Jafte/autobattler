@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Робот "{{ robot.name }}"{% endblock %}
+
+{% block content %}
+    <h1 class="title">Робот "{{ robot.name }}"</h1>
+    <div class="columns">
+        <div class="column">
+            <div class="card">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Снаряжение
+                    </div>
+                    <div class="card-header-icon">
+                        <span class="icon">
+                            <i class="fas fa-angle-right" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+                        Не доступно
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="card block">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Характеристики
+                    </div>
+                    <div class="card-header-icon">
+                        <span class="icon">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </span>
+                    </div>
+                </header>
+                <div class="card-content">
+                    <div class="block">
+                        Прочность: {{ robot.max_health }}
+                    </div>
+                    <div class="block">
+                        Статус: {{ robot.get_status_display }}
+                    </div>
+                </div>
+            </div>
+            {% if robot.can_change_status %}
+            <div class="card block">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Действия
+                    </div>
+                    <div class="card-header-icon">
+                        <span class="icon">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </span>
+                    </div>
+                </header>
+                <div class="card-content">
+                    <form method="POST" action="{% url 'infra_robot_detail' robot.pk %}">
+                        {% csrf_token %}
+                        <div class="field has-addons">
+                            <div class="control is-expanded">
+                                <div class="select is-fullwidth">
+                                    {{ form.action }}
+                                </div>
+                            </div>
+                            <div class="control">
+                                <button type="submit" class="button is-primary">выполнить</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

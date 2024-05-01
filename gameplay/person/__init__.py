@@ -1,3 +1,3 @@
-from .base import GameplayPersonBase
-from .bot import GameplayPersonBot
-from .player import GameplayPersonPlayer
+from .base import BasePerson
+from .bot import BotPerson
+from .player import PlayerPerson

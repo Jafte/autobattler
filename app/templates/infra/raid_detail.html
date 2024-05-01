@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Боевой отчет #{{ raid.pk }}{% endblock %}
+
+{% block content %}
+    <h1 class="title">Боевой отчет #{{ raid.pk }}</h1>
+    <hr/>
+    <div class="columns">
+        <div class="column">
+            <h2 class="subtitle">Журнал</h2>
+            <div class="content">
+                {% for log in raid.action_log %}
+                    <p>{{ log }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="column">
+            <h2 class="subtitle">Замеченные субъекты</h2>
+            {% for user_result in raid.users_result.values %}
+                <p>{{ user_result.name }}</p>
+            {% endfor %}
+            {% for bot_result in raid.bots_result.values %}
+                <p>{{ bot_result.name }}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

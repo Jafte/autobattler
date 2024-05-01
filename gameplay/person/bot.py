@@ -1,21 +1,26 @@
 import random
 import hashlib
-from gameplay.person.base import GameplayPersonBase
-from persons.utils import generate_random_name
+from gameplay.person.base import BasePerson
+from robots.utils import generate_random_name
 
 
-class GameplayPersonBot(GameplayPersonBase):
+class BotPerson(BasePerson):
     def __repr__(self) -> str:
-        return f"{self.name} [бот]"
+        base_repr = super().__repr__()
+        return f"{base_repr} [БОТ]"
+
+    def __str__(self) -> str:
+        base_str = super().__repr__()
+        return f"{base_str} [БОТ]"
 
     @classmethod
-    def create(cls) -> 'GameplayPersonBase':
+    def create(cls) -> "BasePerson":
         random_name = generate_random_name()
         return cls(
+            group='bots',
+            uuid=hashlib.md5(random_name.encode("utf-8")).hexdigest(),
             name=random_name,
-            uuid=hashlib.md5(random_name.encode('utf-8')).hexdigest(),
-            health=100,
-            inventory={},
+            max_health=100,
         )
 
     def add_experience(self, value: int) -> None:

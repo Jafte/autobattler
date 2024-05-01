@@ -1,10 +1,23 @@
 from django.contrib import admin
-from .models import UserRaid
+from .models import Raid, UserRaid
 
 
-@admin.register(UserRaid)
-class AdminRaidSession(admin.ModelAdmin):
-    list_display = ('rules', 'status', 'players')
+class AdminUserRaid(admin.TabularInline):
+    model = UserRaid
+    extra = 0
+    can_delete = False
 
-    def players(self, obj: UserRaid):
-        return obj.players.all().count()
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Raid)
+class AdminRaid(admin.ModelAdmin):
+    list_display = ("pk", "created_at")
+    inlines = [
+        AdminUserRaid,
+    ]
+

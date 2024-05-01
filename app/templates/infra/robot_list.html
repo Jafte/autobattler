@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Роботы-разведчики{% endblock %}
+
+{% block content %}
+    <div class="level">
+        <div class="level-left">
+            <h1 class="title">Роботы-разведчики</h1>
+        </div>
+        <div class="level-right">
+            <a class="button" href="{% url 'infra_robot_add' %}">
+                <span class="icon">
+                    <i class="fa-solid fa-plus"></i>
+                </span>
+            </a>
+        </div>
+    </div>
+    <hr />
+    <table class="table is-striped is-fullwidth">
+        <thead>
+        <tr>
+            <th>Имя</th>
+            <th>Статус</th>
+            <th>Миссий</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for robot in robot_list %}
+        <tr>
+            <td>{{ robot.name }}</td>
+            <td>
+                <span class="tag {{ robot.tag_class }}">
+                    {{ robot.get_status_display }}
+                </span>
+            </td>
+            <td>{{ robot.raid_robots.count }}</td>
+            <td>
+                <a class="is-link" href="{% url 'infra_robot_detail' robot.pk %}">
+                    <span class="icon-text">
+                        <span class="icon">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

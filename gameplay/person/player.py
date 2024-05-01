@@ -1,19 +1,19 @@
 import random
-from gameplay.person.base import GameplayPersonBase
+from gameplay.person.base import BasePerson
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from persons.models import UserPerson
+    from robots.models import Robot
 
 
-class GameplayPersonPlayer(GameplayPersonBase):
+class PlayerPerson(BasePerson):
     @classmethod
-    def create(cls, model: 'UserPerson') -> 'GameplayPersonBase':
+    def create(cls, model: "Robot") -> "BasePerson":
         return cls(
+            group=f"user_{model.user.pk}",
+            uuid=model.uuid,
             name=model.name,
-            uuid=str(model.pk),
-            health=model.health,
-            inventory={},
+            max_health=model.max_health,
         )
 
     def add_experience(self, value: int) -> None:

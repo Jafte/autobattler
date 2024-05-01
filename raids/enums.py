@@ -8,4 +8,4 @@ class RaidStatus(models.IntegerChoices):
 
 
 class RaidRules(models.TextChoices):
-    STANDARD = 'Standard'
+    STANDARD = "Standard"

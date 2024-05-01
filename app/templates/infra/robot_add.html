@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Новый робот{% endblock %}
+
+{% block content %}
+    <h1 class="title">Новый робот</h1>
+    <div class="columns">
+        <div class="column">
+            <div class="card">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Ваша зона ответственности
+                    </div>
+                </header>
+                <div class="card-content">
+                    <form action="{% url 'infra_robot_add' %}" method="post">
+                        {% csrf_token %}
+                        <div class="field">
+                            <label for="robot_type" class="label">
+                                Тип
+                            </label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select
+                                            class="is-fullwidth"
+                                            id="robot_type"
+                                            name="robot_type"
+                                            disabled
+                                    >
+                                        <option value="standart" selected>Стандартный</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.name.id_for_label }}" class="label">
+                                Имя
+                            </label>
+                            <div class="control">
+                                <input
+                                        class="input"
+                                        id="{{ form.name.id }}"
+                                        type="text"
+                                        name="{{ form.name.html_name }}"
+                                        value="{{ form.name.value | default:'' }}"
+                                >
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-link">
+                                    Создать
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="card">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Итоговые характеристики
+                    </div>
+                </header>
+                <div class="card-content">
+                    <ul class="list">
+                        <li>Прочность: 100</li>
+                        <li>Подвижность: 10</li>
+                        <li>Скрытность: 1</li>
+                        <li>Боевая мощность: 30</li>
+                        <li>Объем переносимых грузов: 50</li>
+                        <li>Человекоподобность: 0</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,198 +1,158 @@
 import random
 
-from gameplay.person import GameplayPersonBase, GameplayPersonBot, GameplayPersonPlayer
+from gameplay.person import BasePerson, BotPerson, PlayerPerson
 from typing import Dict, List
-from raids.enums import RaidStatus
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from raids.models import UserRaid
+from robots.models import Robot
 
 
-class GameplayRaid:
-    players: Dict[str, GameplayPersonPlayer]
-    max_players: int
-    bots: Dict[str, GameplayPersonBot]
-    max_bots: int
-    current_cycle: int
+class StandartRaid:
+    players: Dict[str, PlayerPerson]
+    bots: Dict[str, BotPerson]
     max_cycles: int
-    status: 'RaidStatus'
     action_log: List[str]
 
-    __cycle_bots: List[str]
-    __cycle_players: List[str]
-
-    def __init__(self, max_players: int, max_bots: int, max_cycles: int) -> None:
+    def __init__(self, max_cycles: int) -> None:
         self.players = {}
-        self.max_players = max_players
         self.bots = {}
-        self.max_bots = max_bots
-        self.current_cycle = 0
         self.max_cycles = max_cycles
-        self.status = RaidStatus.NEW
         self.action_log = []
 
+        self.__meets = {}
+
     @classmethod
-    def create_from_user_raid(cls, user_raid: 'UserRaid') -> 'GameplayRaid':
+    def create_for_users(cls, robots_list: list["Robot"]) -> "StandartRaid":
         raid = cls(
-            max_players=user_raid.rules.get('max_players', 5),
-            max_bots=user_raid.rules.get('max_bots', 20),
-            max_cycles=user_raid.rules.get('max_cycles', 100),
+            max_cycles=100,
         )
 
-        for model in user_raid.players.all():
-            person = GameplayPersonPlayer.create(model)
+        for robot in robots_list:
+            person = PlayerPerson.create(robot)
             raid.join(person)
 
-        raid_bots = random.randint(1, raid.max_bots)
+        raid_bots = random.randint(1, 10)
         for _ in range(raid_bots):
-            bot = GameplayPersonBot.create()
+            bot = BotPerson.create()
             raid.join(bot)
 
         return raid
 
     def __str__(self) -> str:
-        return f"Raid [{self.status.name}]"
+        return f"Raid"
 
     def __repr__(self) -> str:
-        return f"Raid [{self.status.name}]"
+        return f"Raid"
 
-    def join(self, person: GameplayPersonBase) -> bool:
-        if self.status != RaidStatus.NEW:
-            return False
-
-        if isinstance(person, GameplayPersonPlayer):
+    def join(self, person: BasePerson) -> bool:
+        if isinstance(person, PlayerPerson):
             return self.__join_player(person)
-        if isinstance(person, GameplayPersonBot):
+        if isinstance(person, BotPerson):
             return self.__join_bot(person)
 
         return False
 
-    def __join_player(self, player: GameplayPersonPlayer) -> bool:
-        if len(self.players) >= self.max_players:
-            return False
+    def __join_player(self, player: PlayerPerson) -> bool:
         if player.uuid not in self.players:
             self.players[player.uuid] = player
         return True
 
-    def __join_bot(self, bot: GameplayPersonBot) -> bool:
-        if len(self.bots) >= self.max_bots:
-            return False
+    def __join_bot(self, bot: BotPerson) -> bool:
         if bot.uuid not in self.bots:
             self.bots[bot.uuid] = bot
         return True
 
-    def start(self) -> bool:
-        if self.status != RaidStatus.NEW:
-            return False
-
-        self.status = RaidStatus.IN_PROGRESS
-
-        return True
-
-    def finish(self) -> bool:
-        if self.status != RaidStatus.IN_PROGRESS:
-            return False
-        self.status = RaidStatus.FINISHED
-
-        return True
-
     def play(self) -> None:
-        if self.status != RaidStatus.IN_PROGRESS:
-            return
+        for current_cycle in range(1, self.max_cycles + 1):
+            players_keys = list(self.players.keys())
+            random.shuffle(players_keys)
 
-        next_cycle = self.current_cycle + 1
-        if next_cycle > self.max_cycles:
-            self.finish()
-            return
+            all_dead = True
 
-        self.current_cycle = next_cycle
-        self.__cycle_bots = list(self.bots.keys())
-        self.__cycle_players = list(self.players.keys())
-        all_dead = True
+            for players_key in players_keys:
+                player = self.players[players_key]
+                if player.is_dead():
+                    continue
+                all_dead = False
 
-        players_keys = list(self.players.keys())
-        random.shuffle(players_keys)
+                met_persons = self.get_met_persons(player)
 
-        for players_key in players_keys:
-            player = self.players[players_key]
-            if not player.is_alive():
-                continue
+                if not met_persons:
+                    if player.health < player.max_health:
+                        heal_value = random.randint(10, 20)
+                        player.heal(heal_value)
+                        self.action_log.append(f"{player} спокойно похилился на {heal_value}, здоровье {player.health}")
+                    continue
 
-            all_dead = False
-            met_persons = self.get_met_persons(player)
+                self.action_log.append(f"{player} встречает {len(met_persons)}")
+                for met_person in met_persons:
+                    if met_person.group != player.group:
+                        self.fight(player, met_person)
+                    else:
+                        self.action_log.append(f"{player} встретил союзника {met_person}")
+                        player.add_experience(150)
+                        met_person.add_experience(150)
 
-            if met_persons:
-                self.action_log.append(f"{player} встречает {len(met_persons)} противников")
-            else:
-                if player.health < 100:
-                    player.heal(random.randint(10, 20))
-                    self.action_log.append(f"{player} спокойно похилился, здоровье {player.health}")
+            if all_dead:
+                break
 
-            for met_person in met_persons:
-                self.fight(player, met_person)
-                if not player.is_alive():
-                    break
-
-        if not all_dead:
-            self.play()
-        else:
-            self.finish()
-
-    def get_met_persons(self, person: GameplayPersonBase) -> List[GameplayPersonBase]:
-        if isinstance(person, GameplayPersonPlayer):
+    def get_met_persons(self, person: BasePerson) -> List[BasePerson]:
+        if isinstance(person, PlayerPerson):
             met_players = self.__get_met_players(person)
             met_bots = self.__get_met_bots(person)
             return [*met_players, *met_bots]
 
         return []
 
-    def __get_met_players(self, player: GameplayPersonBase) -> List[GameplayPersonPlayer]:
+    def __get_met_players(self, player: BasePerson) -> List[PlayerPerson]:
         if random.random() > 0.2:
             return []
 
-        met_players: List[GameplayPersonPlayer] = []
+        already_met = self.__meets.get(player.uuid, {})
+        met_players: List[PlayerPerson] = []
 
-        for other_player_key in self.__cycle_players:
-            other_player = self.players[other_player_key]
+        for other_player in self.players.values():
             if other_player != player and other_player.is_alive():
-                if random.random() > 0.9:
+                chance_to_meet = 0.2 - already_met.get(other_player.uuid, 0) * 0.05
+                if random.random() < chance_to_meet:
                     met_players.append(other_player)
-
-        for met_player_key in met_players:
-            self.__cycle_players.remove(met_player_key.uuid)
+                    if other_player.uuid not in already_met:
+                        already_met[other_player.uuid] = 0
+                    already_met[other_player.uuid] += 1
 
         return met_players
 
-    def __get_met_bots(self, player: GameplayPersonBase) -> List[GameplayPersonBot]:
+    def __get_met_bots(self, player: BasePerson) -> List[BotPerson]:
         if random.random() > 0.3:
             return []
 
-        met_bots: List[GameplayPersonBot] = []
+        already_met = self.__meets.get(player.uuid, {})
+        met_bots: List[BotPerson] = []
 
-        for bot_key in self.__cycle_bots:
-            bot = self.bots[bot_key]
+        for bot in self.bots.values():
             if bot.is_alive():
-                if random.random() > 0.7:
+                chance_to_meet = 0.3 - already_met.get(bot.uuid, 0) * 0.05
+                if random.random() < chance_to_meet:
                     met_bots.append(bot)
-
-        for met_bot in met_bots:
-            self.__cycle_bots.remove(met_bot.uuid)
+                    if bot.uuid not in already_met:
+                        already_met[bot.uuid] = 0
+                    already_met[bot.uuid] += 1
 
         return met_bots
 
-    def fight(self, person_1: GameplayPersonBase, person_2: GameplayPersonBase) -> None:
+    def fight(self, person_1: BasePerson, person_2: BasePerson) -> None:
         peaceful_ending = 1
-        if isinstance(person_1, GameplayPersonPlayer) or isinstance(person_2, GameplayPersonPlayer):
+        if isinstance(person_1, PlayerPerson) or isinstance(person_2, PlayerPerson):
             peaceful_ending = 0
-            if isinstance(person_1, GameplayPersonPlayer) and isinstance(person_2, GameplayPersonPlayer):
+            if isinstance(person_1, PlayerPerson) and isinstance(person_2, PlayerPerson):
                 peaceful_ending = random.random() > 0.5
 
         if peaceful_ending:
             self.action_log.append(f"{person_1} и {person_2} разошлись миром")
             person_1.add_experience(100)
             person_1.heal(10)
+            self.action_log.append(f"{person_1} подлечился на 10, здоровье {person_1.health}")
             person_2.add_experience(100)
             person_2.heal(10)
+            self.action_log.append(f"{person_2} подлечился на 10, здоровье {person_2.health}")
             return
 
         while person_1.is_alive() and person_2.is_alive():
@@ -206,18 +166,18 @@ class GameplayRaid:
                 person_2.hit(hit_value)
                 self.action_log.append(f"{person_1} урон по {person_2} в размере {hit_value}")
 
-        if not person_1.is_alive():
-            person_1.killed_by = person_2.name
+        if person_1.is_dead():
             self.action_log.append(f"{person_1} погибает от рук {person_2}")
-
-        if not person_2.is_alive():
-            person_2.killed_by = person_1.name
-            self.action_log.append(f"{person_2} погибает от рук {person_1}")
-
-        if person_1.is_alive():
+            person_1.killed_by = person_2
+            person_2.kills.append(person_1)
+        else:
             self.action_log.append(f"{person_1} едва уцелел, здоровье {person_1.health}")
             person_1.add_experience(200)
 
-        if person_2.is_alive():
+        if person_2.is_dead():
+            self.action_log.append(f"{person_2} погибает от рук {person_1}")
+            person_2.killed_by = person_1
+            person_1.kills.append(person_2)
+        else:
             self.action_log.append(f"{person_2} едва уцелел, здоровье {person_2.health}")
             person_2.add_experience(200)

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Завершенные миссии{% endblock %}
+
+{% block content %}
+    <h1>Завершенные миссии</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Роботы</th>
+            <th>Сводка</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for raid in raid_list %}
+        <tr>
+            <td>{{ raid.created_at }}</td>
+            <td>
+                {% for raid_robot in raid.raid_persons.all %}
+                    {% if raid_robot.user == user %}
+                        <p>
+                            {% if raid_robot.fatal %}
+                                <span class="tag is-danger">
+                                    <i class="fa-solid fa-user-slash"></i>
+                                </span>
+                            {% else %}
+                                <span class="tag is-success">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </span>
+                            {% endif %}
+                            {{ raid_robot.user_person.name }}
+                        </p>
+                    {% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                <a class="is-link" href="{% url 'infra_raid_detail' raid.pk %}">
+                    <span class="icon-text">
+                        <span>#{{ raid.pk }}</span>
+                        <span class="icon">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

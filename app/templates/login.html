@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход в систему{% endblock title %}
+
+{% block content %}
+    <div class="columns is-mobile is-centered">
+        <div class="column is-half">
+            <div class="card">
+                <div class="card-content">
+                    <div class="content">
+                        {% if user.is_authenticated %}
+                        <div class="notification is-success">
+                            Ну привет... А я тебя уже знаю!
+                        </div>
+                        {% else %}
+                        {% if form.errors %}
+                        <div class="notification is-danger">
+                            Данные для входа не верны, попробуем еще раз?
+                        </div>
+                        {% endif %}
+                        <form action="{% url 'login' %}" method="post">
+                            {% csrf_token %}
+                            <div class="field">
+                                <label for="{{ form.username.id_for_label }}" class="label">Email</label>
+                                <div class="control has-icons-left has-icons-right">
+                                    <input
+                                            class="input"
+                                            type="text"
+                                            name="{{ form.username.html_name }}"
+                                            placeholder="Email"
+                                            value="{{ form.username.value | default:'' }}"
+                                    >
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="{{ form.password.id_for_label }}" class="label">Password</label>
+                                <div class="control has-icons-left has-icons-right">
+                                    <input
+                                            class="input"
+                                            type="password"
+                                            name="{{ form.password.html_name }}"
+                                            placeholder="Password"
+                                            value=""
+                                    >
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-key"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-link">Войти</button>
+                                </div>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
