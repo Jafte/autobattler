@@ -4,25 +4,24 @@
 
 {% block content %}
     <div class="columns is-mobile is-centered">
-        <div class="column is-half">
+        <div class="column is-half-desktop">
             <div class="card">
                 <div class="card-content">
-                    <div class="content">
-                        {% if user.is_authenticated %}
-                        <div class="notification is-success">
-                            Ну привет... А я тебя уже знаю!
-                        </div>
-                        {% else %}
-                        {% if form.errors %}
-                        <div class="notification is-danger">
-                            Данные для входа не верны, попробуем еще раз?
-                        </div>
-                        {% endif %}
-                        <form action="{% url 'login' %}" method="post">
+                    {% if user.is_authenticated %}
+                    <div class="notification is-success">
+                        Ну привет... А я тебя уже знаю!
+                    </div>
+                    {% else %}
+                    {% if form.errors %}
+                    <div class="notification is-danger">
+                        Данные для входа не верны, попробуем еще раз?
+                    </div>
+                    {% endif %}
+                    <form action="{% url 'login' %}" method="post">
                             {% csrf_token %}
                             <div class="field">
                                 <label for="{{ form.username.id_for_label }}" class="label">Email</label>
-                                <div class="control has-icons-left has-icons-right">
+                                <div class="control has-icons-left">
                                     <input
                                             class="input"
                                             type="text"
@@ -37,7 +36,7 @@
                             </div>
                             <div class="field">
                                 <label for="{{ form.password.id_for_label }}" class="label">Password</label>
-                                <div class="control has-icons-left has-icons-right">
+                                <div class="control has-icons-left">
                                     <input
                                             class="input"
                                             type="password"
@@ -57,7 +56,6 @@
                             </div>
                         </form>
                         {% endif %}
-                    </div>
                 </div>
             </div>
         </div>
