@@ -1,0 +1,66 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination is-centered" role="navigation" aria-label="pagination">
+    {% if page_obj.has_previous %}
+       <a href="{{ base_url }}?page={{ page_obj.previous_page_number }}" class="pagination-previous">предыдущая</a>
+    {% else %}
+        <a class="pagination-previous is-disabled">предыдущая</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+        <a href="{{ base_url }}?page={{ page_obj.next_page_number }}" class="pagination-next">следующая</a>
+    {% else %}
+        <a class="pagination-next is-disabled">следующая</a>
+    {% endif %}
+    <ul class="pagination-list">
+        {% if page_obj.number != 1 %}
+        <li>
+            <a
+                    href="{{ base_url }}?page=1"
+                    class="pagination-link{% if page_obj.number == 1 %}is-current{% endif %}"
+                    aria-label="На стр 1">1</a>
+        </li>
+            {% if page_obj.number > 3 %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% endif %}
+            {% if page_obj.number > 2 %}
+        <li>
+            <a
+                    href="{{ base_url }}?page={{ page_obj.number|add:-1 }}"
+                    class="pagination-link"
+                    aria-label="на стр {{ page_obj.number|add:-1 }}"
+            >{{ page_obj.number|add:-1 }}</a>
+        </li>
+            {% endif %}
+
+        {% endif %}
+        <li>
+            <a
+                    class="pagination-link is-current"
+                    aria-label="стр {{ page_obj.number }}"
+                    aria-current="page"
+            >{{ page_obj.number }}</a
+            >
+        </li>
+        {% if page_obj.number != page_obj.paginator.num_pages %}
+            {% if page_obj.number|add:1 < page_obj.paginator.num_pages  %}
+        <li>
+            <a
+                    href="{{ base_url }}?page={{ page_obj.number|add:1 }}"
+                    class="pagination-link"
+                    aria-label="на стр {{ page_obj.number|add:1 }}">
+            {{ page_obj.number|add:1 }}</a>
+        </li>
+            {% endif %}
+            {% if page_obj.number|add:2 < page_obj.paginator.num_pages  %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% endif %}
+        <li>
+            <a
+                    href="{{ base_url }}?page={{ page_obj.paginator.num_pages }}"
+                    class="pagination-link{% if page_obj.number == page_obj.paginator.num_pages %}is-current{% endif %}"
+                    aria-label="на стр {{ page_obj.paginator.num_pages }}"
+            >{{ page_obj.paginator.num_pages }}</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

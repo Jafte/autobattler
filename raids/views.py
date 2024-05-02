@@ -7,6 +7,7 @@ from raids.models import Raid
 class RaidListView(LoginRequiredMixin, ListView):
     context_object_name = "raid_list"
     template_name = "infra/raid_list.html"
+    paginate_by = 30
 
     def get_queryset(self):
         user_robots = Count('robots', Q(robots__user=self.request.user))

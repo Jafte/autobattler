@@ -37,49 +37,91 @@
                     {% endif %}
                     <form action="{% url 'infra_robot_add' %}" method="post">
                         {% csrf_token %}
-                        <div class="field">
-                            <label for="robot_type" class="label">
-                                Тип
-                            </label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select
-                                            class="is-fullwidth"
-                                            id="robot_type"
-                                            name="robot_type"
-                                            disabled
-                                    >
-                                        <option value="standart" selected>Стандартный</option>
-                                    </select>
+                        <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.name.id_for_label }}" class="label">
+                                        Имя
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.name.errors %}is-danger{% endif %}"
+                                                id="{{ form.name.id }}"
+                                                type="text"
+                                                name="{{ form.name.html_name }}"
+                                                value="{{ form.name.value | default:'' }}"
+                                        >
+                                        <div class="help">Минимум 1 символ, максимум красоты</div>
+                                        {% if form.name.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.name.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="field">
-                            <label for="{{ form.name.id_for_label }}" class="label">
-                                Имя
-                            </label>
-                            <div class="control">
-                                <input
-                                        class="input {% if form.name.errors %}is-danger{% endif %}"
-                                        id="{{ form.name.id }}"
-                                        type="text"
-                                        name="{{ form.name.html_name }}"
-                                        value="{{ form.name.value | default:'' }}"
-                                >
-                                {% if form.name.errors %}
-                                <ul class="help is-danger">
-                                    {% for error in form.name.errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
+                        <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.strength.id_for_label }}" class="label">
+                                        Мощность
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.strength.errors %}is-danger{% endif %}"
+                                                id="{{ form.strength.id }}"
+                                                type="text"
+                                                name="{{ form.strength.html_name }}"
+                                                value="{{ form.strength.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.strength.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.strength.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.agility.id_for_label }}" class="label">
+                                        Подвижность
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.agility.errors %}is-danger{% endif %}"
+                                                id="{{ form.agility.id }}"
+                                                type="text"
+                                                name="{{ form.agility.html_name }}"
+                                                value="{{ form.agility.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.agility.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.agility.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="field">
-                            <div class="control">
-                                <button class="button is-link">
-                                    Создать
-                                </button>
+                        <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <div class="control">
+                                        <button class="button is-link">
+                                            Создать
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -90,17 +132,22 @@
             <div class="card">
                 <header class="card-header">
                     <div class="card-header-title">
-                        Итоговые характеристики
+                        Справочные данные
                     </div>
                 </header>
                 <div class="card-content">
-                    <ul class="list">
-                        <li>Прочность: 100</li>
-                        <li>Наносимый урон: 10-100</li>
-                        <li>Самостоятельный ремонт: 10</li>
-                        <li>Объем переносимых грузов: 50</li>
-                        <li>Шанс принять за человека: 0</li>
-                    </ul>
+                    <div class="block">
+                        <b>Имя</b> - название вашего робота разведчика которые будет
+                        красивыми золотыми буквами выбито на его внутренней обшивке.
+                    </div>
+                    <div class="block">
+                        <b>Мощность</b> - влияет на запас прочности и наносимый урон.
+                        Требует много энергии, вызывает зависимость от власти.
+                    </div>
+                    <div class="block">
+                        <b>Подвижность</b> - влияет на маневренность и скорость реакции.
+                        Так же расходует энергию и порождает ветер от невероятно быстрых движений.
+                    </div>
                 </div>
             </div>
         </div>

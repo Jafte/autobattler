@@ -16,7 +16,7 @@ class Robot(models.Model):
     user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     status = models.CharField(max_length=64, choices=RobotStatus.choices, default=RobotStatus.WAITING)
-    strength = models.SmallIntegerField(default=15)
+    strength = models.SmallIntegerField(default=10)
     agility = models.SmallIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)

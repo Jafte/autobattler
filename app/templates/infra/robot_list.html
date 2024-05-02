@@ -54,4 +54,6 @@
         {% endfor %}
         </tbody>
     </table>
+    <hr/>
+    {% include "_pagination.html" with page_obj=page_obj base_url='' %}
 {% endblock content %}

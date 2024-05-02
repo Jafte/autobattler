@@ -48,7 +48,7 @@ class BasePerson:
 
     @property
     def max_health(self) -> int:
-        return self.strength * 10
+        return 10 + self.strength * 10
 
     def get_initiative(self) -> int:
         return roll_the_dice(20) + self.agility
