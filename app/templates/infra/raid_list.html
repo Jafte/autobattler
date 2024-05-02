@@ -33,9 +33,10 @@
                 </a>
             </td>
             <td>
+                <ul>
                 {% for raid_robot in raid.raid_robots.all %}
                     {% if raid_robot.user == user %}
-                        <p>
+                        <li>
                             {% if raid_robot.is_died %}
                                 <span class="tag is-danger">
                                     <i class="fa-solid fa-user-slash"></i>
@@ -45,10 +46,13 @@
                                     <i class="fa-solid fa-user-check"></i>
                                 </span>
                             {% endif %}
-                            {{ raid_robot.robot.name }}
-                        </p>
+                            <a href="{% url 'infra_robot_detail' raid_robot.robot.pk %}">
+                                {{ raid_robot.robot.name }}
+                            </a>
+                        </li>
                     {% endif %}
                 {% endfor %}
+                </ul>
             </td>
         </tr>
         {% endfor %}
