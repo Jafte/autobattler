@@ -54,30 +54,24 @@
                 </header>
                 <div class="card-content">
                     {% if last_raids %}
-                    <table class="table is-fullwidth">
-                        <tbody>
+                    <ul>
                         {% for robot_raid in last_raids %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'infra_raid_detail' robot_raid.raid.pk  %}">
-                                        {{ robot_raid.raid.created_at }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if robot_raid.is_died %}
-                                        <span class="tag is-danger">
-                                            <i class="fa-solid fa-user-slash"></i>
-                                        </span>
-                                    {% else %}
-                                        <span class="tag is-success">
-                                            <i class="fa-solid fa-user-check"></i>
-                                        </span>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                            <li>
+                                {% if robot_raid.is_died %}
+                                    <span class="tag is-danger">
+                                        <i class="fa-solid fa-user-slash"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="tag is-success">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </span>
+                                {% endif %}
+                                <a href="{% url 'infra_raid_detail' robot_raid.raid.pk  %}">
+                                    {{ robot_raid.raid.created_at|date:"U" }}
+                                </a>
+                            </li>
                         {% endfor %}
-                        </tbody>
-                    </table>
+                    </ul>
                 {% else %}
                 <div class="block">
                     не участвовал в разведывательных миссиях
