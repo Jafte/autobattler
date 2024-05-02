@@ -1,5 +1,7 @@
 import random
 
+from app.utils import plural
+from gameplay.dices import roll_the_dice
 from gameplay.person import BasePerson, BotPerson, PlayerPerson
 from typing import Dict, List
 from robots.models import Robot
@@ -29,7 +31,9 @@ class StandartRaid:
             person = PlayerPerson.create(robot)
             raid.join(person)
 
-        raid_bots = random.randint(1, 10)
+        min_bots = len(robots_list) * 2
+        max_bots = min_bots * 3 + 1
+        raid_bots = random.randint(min_bots, max_bots)
         for _ in range(raid_bots):
             bot = BotPerson.create()
             raid.join(bot)
@@ -69,118 +73,159 @@ class StandartRaid:
 
             for players_key in players_keys:
                 player = self.players[players_key]
-                if player.is_dead():
+                if player.is_dead:
                     continue
+
                 all_dead = False
 
-                met_persons = self.get_met_persons(player)
+                met_persons = self._get_met_persons(player)
 
-                if not met_persons:
-                    if player.health < player.max_health:
-                        heal_value = random.randint(10, 20)
-                        player.heal(heal_value)
-                        self.action_log.append(f"{player} спокойно похилился на {heal_value}, здоровье {player.health}")
+                if len(met_persons) == 0:
+                    if not player.need_healing:
+                        continue
+
+                    healing_volume = player.get_healing_volume()
+                    player.heal(healing_volume)
+                    action_msg = f"спокойно полечился на {healing_volume}"
+                    player.log(action_msg)
+                    self.action_log.append(f"{player} {action_msg}")
                     continue
 
-                self.action_log.append(f"{player} встречает {len(met_persons)}")
+                len_met_persons = len(met_persons)
+                action_msg = f"замечает {plural(len_met_persons, ['силуэт','силуэта','силуэтов'])}"
+                player.log(action_msg)
+                self.action_log.append(f"{player} {action_msg}")
+
                 for met_person in met_persons:
                     if met_person.group != player.group:
                         self.fight(player, met_person)
-                    else:
-                        self.action_log.append(f"{player} встретил союзника {met_person}")
-                        player.add_experience(150)
-                        met_person.add_experience(150)
+                        continue
+
+                    if met_person.group == player.group:
+                        action_msg = f"встретил союзника {met_person}"
+                        player.log(action_msg)
+                        met_person.log(f"наткнулся на союзника {player}")
+                        self.action_log.append(f"{player} {action_msg}")
+                        player.add_experience(10)
+                        met_person.add_experience(10)
 
             if all_dead:
                 break
 
-    def get_met_persons(self, person: BasePerson) -> List[BasePerson]:
+    def _get_met_persons(self, person: BasePerson) -> List[BasePerson]:
         if isinstance(person, PlayerPerson):
             met_players = self.__get_met_players(person)
-            met_bots = self.__get_met_bots(person)
+            met_bots = self.__get_met_bots()
             return [*met_players, *met_bots]
 
         return []
 
     def __get_met_players(self, player: BasePerson) -> List[PlayerPerson]:
-        if random.random() > 0.2:
+        dice_value = roll_the_dice(20)
+        if dice_value == 20:
             return []
 
-        already_met = self.__meets.get(player.uuid, {})
+        if player.uuid not in self.__meets:
+            self.__meets[player.uuid] = {}
+
+        already_met = self.__meets[player.uuid]
         met_players: List[PlayerPerson] = []
 
         for other_player in self.players.values():
-            if other_player != player and other_player.is_alive():
-                chance_to_meet = 0.2 - already_met.get(other_player.uuid, 0) * 0.05
-                if random.random() < chance_to_meet:
+            if other_player != player and other_player.is_alive:
+                dice_value = roll_the_dice(6) + already_met.get(other_player.uuid, 0)
+                if dice_value < 4:
                     met_players.append(other_player)
                     if other_player.uuid not in already_met:
                         already_met[other_player.uuid] = 0
+                    if other_player.uuid not in self.__meets:
+                        self.__meets[other_player.uuid] = {}
+                    if player.uuid not in self.__meets[other_player.uuid]:
+                        self.__meets[other_player.uuid][player.uuid] = 0
                     already_met[other_player.uuid] += 1
+                    self.__meets[other_player.uuid][player.uuid] += 1
 
         return met_players
 
-    def __get_met_bots(self, player: BasePerson) -> List[BotPerson]:
-        if random.random() > 0.3:
+    def __get_met_bots(self) -> List[BotPerson]:
+        dice_value = roll_the_dice(20)
+        if dice_value >= 19:
             return []
 
-        already_met = self.__meets.get(player.uuid, {})
         met_bots: List[BotPerson] = []
 
         for bot in self.bots.values():
-            if bot.is_alive():
-                chance_to_meet = 0.3 - already_met.get(bot.uuid, 0) * 0.05
-                if random.random() < chance_to_meet:
+            if bot.is_alive:
+                dice_value = roll_the_dice(10)
+                if dice_value < 6:
                     met_bots.append(bot)
-                    if bot.uuid not in already_met:
-                        already_met[bot.uuid] = 0
-                    already_met[bot.uuid] += 1
 
         return met_bots
 
     def fight(self, person_1: BasePerson, person_2: BasePerson) -> None:
-        if person_1.is_dead() or person_2.is_dead():
+        if person_1.is_dead or person_2.is_dead:
             return
 
-        peaceful_ending = 1
-        if isinstance(person_1, PlayerPerson) or isinstance(person_2, PlayerPerson):
-            peaceful_ending = 0
-            if isinstance(person_1, PlayerPerson) and isinstance(person_2, PlayerPerson):
-                peaceful_ending = random.random() > 0.5
+        if isinstance(person_1, PlayerPerson) and isinstance(person_2, PlayerPerson):
+            dice_value = roll_the_dice(20)
+            if dice_value == 20:
+                self.action_log.append(f"{person_1} и {person_2} разошлись миром")
+                person_1.add_experience(100)
+                person_2.add_experience(100)
+                return
 
-        if peaceful_ending:
-            self.action_log.append(f"{person_1} и {person_2} разошлись миром")
+        while person_1.is_alive and person_2.is_alive:
+            if person_1.get_initiative() > person_2.get_initiative():
+                if person_1.attack(person_2):
+                    if self._one_hit_another(person_1, person_2):
+                        break
+                else:
+                    action_msg = f"промахнулся по {person_2}"
+                    person_1.log(action_msg)
+                    self.action_log.append(f"{person_1} {action_msg}")
+
+                if person_2.attack(person_1):
+                    if self._one_hit_another(person_2, person_1):
+                        break
+                else:
+                    action_msg = f"промахнулся по {person_1}"
+                    person_2.log(action_msg)
+                    self.action_log.append(f"{person_2} {action_msg}")
+            else:
+                if person_2.attack(person_1):
+                    if self._one_hit_another(person_2, person_1):
+                        break
+                else:
+                    action_msg = f"промахнулся по {person_1}"
+                    person_2.log(action_msg)
+                    self.action_log.append(f"{person_2} {action_msg}")
+
+                if person_1.attack(person_2):
+                    if self._one_hit_another(person_1, person_2):
+                        break
+                else:
+                    action_msg = f"промахнулся по {person_2}"
+                    person_1.log(action_msg)
+                    self.action_log.append(f"{person_1} {action_msg}")
+
+    def _one_hit_another(self, person_1: 'BasePerson', person_2: 'BasePerson') -> bool:
+        damage_value = person_1.get_damage_volume()
+        person_2.hit(damage_value)
+
+        action_msg = f"наносит {damage_value} урона по {person_2}"
+        person_1.log(action_msg)
+        person_2.log(f"получает {damage_value} урона от {person_1}")
+        self.action_log.append(f"{person_1} {action_msg}")
+
+        if person_2.is_dead:
             person_1.add_experience(100)
-            person_1.heal(10)
-            self.action_log.append(f"{person_1} подлечился на 10")
-            person_2.add_experience(100)
-            person_2.heal(10)
-            self.action_log.append(f"{person_2} подлечился на 10")
-            return
-
-        while person_1.is_alive() and person_2.is_alive():
-            hit_value = person_2.get_damage_value()
-            if hit_value:
-                person_1.hit(hit_value)
-                self.action_log.append(f"{person_2} попадает по {person_1}, урон {hit_value}")
-
-            hit_value = person_1.get_damage_value()
-            if hit_value:
-                person_2.hit(hit_value)
-                self.action_log.append(f"{person_1} попадает по {person_2}, урон {hit_value}")
-
-        if person_1.is_dead():
-            self.action_log.append(f"{person_1} погибает от рук {person_2}")
-            person_1.killed_by = person_2
-            person_2.kills.append(person_1)
-        else:
-            self.action_log.append(f"{person_1} едва уцелел")
-            person_1.add_experience(200)
-
-        if person_2.is_dead():
-            self.action_log.append(f"{person_2} погибает от рук {person_1}")
-            person_2.killed_by = person_1
             person_1.kills.append(person_2)
-        else:
-            self.action_log.append(f"{person_2} едва уцелел")
-            person_2.add_experience(200)
+            person_2.killed_by = person_1
+            action_msg = f"убивает {person_2}"
+            person_2.log(f"умирает от рук {person_1}")
+            self.action_log.append(f"{person_1} {action_msg}")
+            action_msg = f"едва уцелел"
+            person_1.log(action_msg)
+            self.action_log.append(f"{person_1} {action_msg}")
+            return True
+        return False

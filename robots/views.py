@@ -32,7 +32,7 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
         self.object = self.get_object()
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
-            self.object.status = RobotStatus.ON_MISSION
+            self.object.status = RobotStatus.PREPARATION
             self.object.save()
         if action == RobotAction.DISASSEMBLE:
             self.object.status = RobotStatus.DEAD
@@ -49,7 +49,8 @@ class RobotCreateView(LoginRequiredMixin, CreateView):
         self.object = Robot(
             user=self.request.user,
             name=form.cleaned_data["name"],
-            max_health=100,
+            strength=15,
+            agility=10,
         )
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())

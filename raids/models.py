@@ -62,7 +62,7 @@ class Raid(models.Model):
                 robots_killed_value=len(robots_killed_list),
                 robots_killed_list=list(map(lambda x: x.name, robots_killed_list)),
                 experience=robot_in_raid.experience,
-                is_died=robot_in_raid.is_dead(),
+                is_died=robot_in_raid.is_dead,
                 result={
                     "health": robot_in_raid.health,
                     "killed_by": robot_in_raid.killed_by.name if robot_in_raid.killed_by else '',

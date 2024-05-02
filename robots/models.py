@@ -16,10 +16,8 @@ class Robot(models.Model):
     user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     status = models.CharField(max_length=64, choices=RobotStatus.choices, default=RobotStatus.WAITING)
-    max_health = models.SmallIntegerField(default=100)
-    min_damage = models.SmallIntegerField(default=10)
-    max_damage = models.SmallIntegerField(default=100)
-    heal = models.SmallIntegerField(default=10)
+    strength = models.SmallIntegerField(default=15)
+    agility = models.SmallIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
     died_at = models.DateTimeField(blank=True, null=True)
@@ -37,19 +35,21 @@ class Robot(models.Model):
 
     @property
     def can_change_status(self):
-        return self.status != RobotStatus.ON_MISSION and self.status != RobotStatus.DEAD
+        return self.status not in [RobotStatus.ON_MISSION, RobotStatus.DEAD, RobotStatus.PREPARATION]
 
     @property
     def tag_class(self):
         if self.status == RobotStatus.DEAD:
             return "is-danger"
+        if self.status == RobotStatus.PREPARATION:
+            return "is-warning"
         if self.status == RobotStatus.ON_MISSION:
             return "is-warning"
         return "12"
 
     def update_from_raid(self, robot_in_raid: "PlayerPerson"):
         self.status = RobotStatus.WAITING
-        if robot_in_raid.is_dead():
+        if robot_in_raid.is_dead:
             self.status = RobotStatus.DEAD
             self.died_at = timezone.now()
             self.epitaph = f"Убит {robot_in_raid.killed_by}"

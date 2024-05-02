@@ -8,16 +8,11 @@ if TYPE_CHECKING:
 
 class PlayerPerson(BasePerson):
     @classmethod
-    def create(cls, model: "Robot") -> "BasePerson":
+    def create(cls, robot_model: "Robot") -> "BasePerson":
         return cls(
-            group=f"user_{model.user.pk}",
-            uuid=model.uuid,
-            name=model.name,
-            max_health=model.max_health,
+            uuid=robot_model.uuid,
+            name=robot_model.name,
+            group=f"user_{robot_model.user.pk}",
+            strength=robot_model.strength,
+            agility=robot_model.agility,
         )
-
-    def add_experience(self, value: int) -> None:
-        self.experience += value
-
-    def get_damage_value(self) -> int:
-        return random.randint(0, 100)
