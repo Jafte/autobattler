@@ -3,6 +3,18 @@
 {% block title %}Новый робот{% endblock %}
 
 {% block content %}
+    <div class="block">
+        <a class="tag" href="{% url 'infra_robot_list' %}">
+            <span class="icon-text">
+                <span class="icon">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </span>
+                <span>
+                    вернуться к списку роботов
+                </span>
+            </span>
+        </a>
+    </div>
     <h1 class="title">Новый робот</h1>
     <hr/>
     <div class="columns">
@@ -14,6 +26,15 @@
                     </div>
                 </header>
                 <div class="card-content">
+                    {% if form.non_field_errors %}
+                    <div class="notification is-danger">
+                        <ul>
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                     <form action="{% url 'infra_robot_add' %}" method="post">
                         {% csrf_token %}
                         <div class="field">
@@ -39,12 +60,19 @@
                             </label>
                             <div class="control">
                                 <input
-                                        class="input"
+                                        class="input {% if form.name.errors %}is-danger{% endif %}"
                                         id="{{ form.name.id }}"
                                         type="text"
                                         name="{{ form.name.html_name }}"
                                         value="{{ form.name.value | default:'' }}"
                                 >
+                                {% if form.name.errors %}
+                                <ul class="help is-danger">
+                                    {% for error in form.name.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="field">
@@ -68,11 +96,10 @@
                 <div class="card-content">
                     <ul class="list">
                         <li>Прочность: 100</li>
-                        <li>Подвижность: 10</li>
-                        <li>Скрытность: 1</li>
-                        <li>Боевая мощность: 30</li>
+                        <li>Наносимый урон: 10-100</li>
+                        <li>Самостоятельный ремонт: 10</li>
                         <li>Объем переносимых грузов: 50</li>
-                        <li>Человекоподобность: 0</li>
+                        <li>Шанс принять за человека: 0</li>
                     </ul>
                 </div>
             </div>

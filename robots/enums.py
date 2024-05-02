@@ -2,13 +2,11 @@ from django.db import models
 
 
 class RobotStatus(models.TextChoices):
-    DEAD = "DEAD", "Dead"
-    WAITING = "WAITING", "Waiting"
-    ON_MISSION = "ON_MISSION", "On a mission"
-    TRAINING = "TRAINING", "Training"
+    DEAD = "DEAD", "Нет сигнала"
+    WAITING = "WAITING", "В режиме ожидании"
+    ON_MISSION = "ON_MISSION", "Исполняет задание"
 
 
 class RobotAction(models.TextChoices):
-    SEND_TO_RAID = "SEND_TO_RAID", "Send to mission"
-    SEND_TO_TRAINING = "SEND_TO_TRAINING", "Send to training"
-    DISASSEMBLE = "DISASSEMBLE", "Disassemble"
+    SEND_TO_RAID = "SEND_TO_RAID", "Отправить на миссию"
+    DISASSEMBLE = "DISASSEMBLE", "Разобрать"

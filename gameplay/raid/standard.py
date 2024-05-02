@@ -139,6 +139,9 @@ class StandartRaid:
         return met_bots
 
     def fight(self, person_1: BasePerson, person_2: BasePerson) -> None:
+        if person_1.is_dead() or person_2.is_dead():
+            return
+
         peaceful_ending = 1
         if isinstance(person_1, PlayerPerson) or isinstance(person_2, PlayerPerson):
             peaceful_ending = 0
@@ -149,29 +152,29 @@ class StandartRaid:
             self.action_log.append(f"{person_1} и {person_2} разошлись миром")
             person_1.add_experience(100)
             person_1.heal(10)
-            self.action_log.append(f"{person_1} подлечился на 10, здоровье {person_1.health}")
+            self.action_log.append(f"{person_1} подлечился на 10")
             person_2.add_experience(100)
             person_2.heal(10)
-            self.action_log.append(f"{person_2} подлечился на 10, здоровье {person_2.health}")
+            self.action_log.append(f"{person_2} подлечился на 10")
             return
 
         while person_1.is_alive() and person_2.is_alive():
             hit_value = person_2.get_damage_value()
             if hit_value:
                 person_1.hit(hit_value)
-                self.action_log.append(f"{person_2} урон по {person_1} в размере {hit_value}")
+                self.action_log.append(f"{person_2} попадает по {person_1}, урон {hit_value}")
 
             hit_value = person_1.get_damage_value()
             if hit_value:
                 person_2.hit(hit_value)
-                self.action_log.append(f"{person_1} урон по {person_2} в размере {hit_value}")
+                self.action_log.append(f"{person_1} попадает по {person_2}, урон {hit_value}")
 
         if person_1.is_dead():
             self.action_log.append(f"{person_1} погибает от рук {person_2}")
             person_1.killed_by = person_2
             person_2.kills.append(person_1)
         else:
-            self.action_log.append(f"{person_1} едва уцелел, здоровье {person_1.health}")
+            self.action_log.append(f"{person_1} едва уцелел")
             person_1.add_experience(200)
 
         if person_2.is_dead():
@@ -179,5 +182,5 @@ class StandartRaid:
             person_2.killed_by = person_1
             person_1.kills.append(person_2)
         else:
-            self.action_log.append(f"{person_2} едва уцелел, здоровье {person_2.health}")
+            self.action_log.append(f"{person_2} едва уцелел")
             person_2.add_experience(200)

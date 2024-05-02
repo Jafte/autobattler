@@ -23,11 +23,19 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
     def get_queryset(self):
         return Robot.objects.filter(user=self.request.user).order_by("-created_at")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["last_raids"] = self.object.raid_robots.prefetch_related("raid").order_by("-raid__created_at")[:5]
+        return context
+
     def form_valid(self, form):
         self.object = self.get_object()
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
             self.object.status = RobotStatus.ON_MISSION
+            self.object.save()
+        if action == RobotAction.DISASSEMBLE:
+            self.object.status = RobotStatus.DEAD
             self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 

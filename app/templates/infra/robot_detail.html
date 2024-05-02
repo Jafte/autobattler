@@ -3,28 +3,21 @@
 {% block title %}Робот "{{ robot.name }}"{% endblock %}
 
 {% block content %}
+    <div class="block">
+        <a class="tag" href="{% url 'infra_robot_list' %}">
+            <span class="icon-text">
+                <span class="icon">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </span>
+                <span>
+                    вернуться к списку роботов
+                </span>
+            </span>
+        </a>
+    </div>
     <h1 class="title">Робот "{{ robot.name }}"</h1>
     <hr/>
     <div class="columns">
-        <div class="column">
-            <div class="card">
-                <header class="card-header">
-                    <div class="card-header-title">
-                        Снаряжение
-                    </div>
-                    <div class="card-header-icon">
-                        <span class="icon">
-                            <i class="fas fa-angle-right" aria-hidden="true"></i>
-                        </span>
-                    </div>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-                        Не доступно
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="column">
             <div class="card block">
                 <header class="card-header">
@@ -46,7 +39,54 @@
                     </div>
                 </div>
             </div>
-            {% if robot.can_change_status %}
+        </div>
+        <div class="column">
+            <div class="card block">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Последние миссии
+                    </div>
+                    <div class="card-header-icon">
+                        <span class="icon">
+                            <i class="fa-solid fa-satellite"></i>
+                        </span>
+                    </div>
+                </header>
+                <div class="card-content">
+                    {% if robot_raid %}
+                    <table class="table is-fullwidth">
+                        <tbody>
+                        {% for robot_raid in last_raids %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'infra_raid_detail' robot_raid.raid.pk  %}">
+                                        {{ robot_raid.raid.created_at }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if robot_raid.is_died %}
+                                        <span class="tag is-danger">
+                                            <i class="fa-solid fa-user-slash"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="tag is-success">
+                                            <i class="fa-solid fa-user-check"></i>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                <div class="block">
+                    не участвовал в разведывательных миссиях
+                </div>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="column">
             <div class="card block">
                 <header class="card-header">
                     <div class="card-header-title">
@@ -54,11 +94,12 @@
                     </div>
                     <div class="card-header-icon">
                         <span class="icon">
-                            <i class="fa-solid fa-user-gear"></i>
+                            <i class="fa-solid fa-bullhorn"></i>
                         </span>
                     </div>
                 </header>
                 <div class="card-content">
+                    {% if robot.can_change_status %}
                     <form method="POST" action="{% url 'infra_robot_detail' robot.pk %}">
                         {% csrf_token %}
                         <div class="field has-addons">
@@ -72,9 +113,11 @@
                             </div>
                         </div>
                     </form>
+                    {% else %}
+                        Доступных действий нет
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 {% endblock %}

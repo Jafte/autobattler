@@ -1,9 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Боевой отчет #{{ raid.pk }}{% endblock %}
+{% block title %}Боевой отчет {{ raid.created_at|date:"U" }}#{{ raid.pk }}{% endblock %}
 
 {% block content %}
-    <h1 class="title">Боевой отчет #{{ raid.pk }}</h1>
+    <div class="block">
+        <a class="tag" href="{% url 'infra_raid_list' %}">
+            <span class="icon-text">
+                <span class="icon">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </span>
+                <span>
+                    вернуться к списку миссий
+                </span>
+            </span>
+        </a>
+    </div>
+    <h1 class="title">Боевой отчет {{ raid.created_at|date:"U" }}#{{ raid.pk }}</h1>
     <hr/>
     <div class="columns">
         <div class="column">
@@ -17,10 +29,10 @@
         <div class="column">
             <h2 class="subtitle">Замеченные субъекты</h2>
             {% for user_result in raid.users_result.values %}
-                <p>{{ user_result.name }}</p>
+                <div class="block">{{ user_result.name }}</div>
             {% endfor %}
             {% for bot_result in raid.bots_result.values %}
-                <p>{{ bot_result.name }}</p>
+                <div class="block">{{ bot_result.name }}</div>
             {% endfor %}
         </div>
     </div>
