@@ -26,36 +26,30 @@
                     </div>
                 </header>
                 <div class="card-content">
-                    <div class="content">
-                        <table class="table is-striped is-fullwidth">
-                            <thead>
-                            <tr>
-                                <th>Имя</th>
-                                <th>Тип</th>
-                                <th>Статус</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for robot in robots %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'infra_robot_detail' robot.pk %}">
-                                        {{ robot.name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    Стандартный
-                                </td>
-                                <td>
-                                    <span class="tag {{ robot.tag_class }}">
-                                        {{ robot.get_status_display }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for robot in robots %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'infra_robot_detail' robot.pk %}">
+                                    {{ robot.name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="tag {{ robot.tag_class }}">
+                                    {{ robot.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -79,45 +73,47 @@
                     </div>
                 </header>
                 <div class="card-content">
-                    <div class="content">
-                        <table class="table is-striped is-fullwidth">
-                            <thead>
-                            <tr>
-                                <th>Временная метка</th>
-                                <th>Роботы</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for raid in raids %}
-                            <tr>
-                                <td>
-                                    <a class="is-link" href="{% url 'infra_raid_detail' raid.pk %}">
-                                        {{ raid.created_at|date:"U" }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% for raid_robot in raid.raid_robots.all %}
-                                        {% if raid_robot.user == user %}
-                                            <p>
-                                                {% if raid_robot.is_died %}
-                                                    <span class="tag is-danger">
-                                                        <i class="fa-solid fa-user-slash"></i>
-                                                    </span>
-                                                {% else %}
-                                                    <span class="tag is-success">
-                                                        <i class="fa-solid fa-user-check"></i>
-                                                    </span>
-                                                {% endif %}
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                        <tr>
+                            <th>Временная метка</th>
+                            <th>Роботы</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for raid in raids %}
+                        <tr>
+                            <td>
+                                <a class="is-link" href="{% url 'infra_raid_detail' raid.pk %}">
+                                    {{ raid.created_at|date:"U" }}
+                                </a>
+                            </td>
+                            <td>
+                                <ul>
+                                {% for raid_robot in raid.raid_robots.all %}
+                                    {% if raid_robot.user == user %}
+                                        <li>
+                                            {% if raid_robot.is_died %}
+                                                <span class="tag is-danger">
+                                                    <i class="fa-solid fa-user-slash"></i>
+                                                </span>
+                                            {% else %}
+                                                <span class="tag is-success">
+                                                    <i class="fa-solid fa-user-check"></i>
+                                                </span>
+                                            {% endif %}
+                                            <a href="{% url 'infra_robot_detail' raid_robot.robot.pk %}">
                                                 {{ raid_robot.robot.name }}
-                                            </p>
-                                        {% endif %}
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

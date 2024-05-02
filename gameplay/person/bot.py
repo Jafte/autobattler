@@ -18,12 +18,19 @@ class BotPerson(BasePerson):
     @classmethod
     def create(cls) -> "BasePerson":
         random_name = generate_random_name()
+        if roll_the_dice(20) == 20:
+            strength = 20
+            agility = 20
+        else:
+            strength = 5 + roll_the_dice(6) + roll_the_dice(6)
+            agility = 5 + roll_the_dice(6) + roll_the_dice(6)
+
         return cls(
             uuid=hashlib.md5(random_name.encode("utf-8")).hexdigest(),
             name=random_name,
             group='bots',
-            strength=roll_the_dice(10) + 10,
-            agility=roll_the_dice(10) + 10,
+            strength=strength,
+            agility=agility,
         )
 
     def add_experience(self, value: int) -> None:

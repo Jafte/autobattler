@@ -13,6 +13,9 @@ class StandartRaid:
     max_cycles: int
     action_log: List[str]
 
+    MAX_BOTS_CAN_MEET = 5
+    MAX_PLAYERS_CAN_MEET = 5
+
     def __init__(self, max_cycles: int) -> None:
         self.players = {}
         self.bots = {}
@@ -121,6 +124,9 @@ class StandartRaid:
         return []
 
     def __get_met_players(self, player: BasePerson) -> List[PlayerPerson]:
+        if player.is_dead:
+            return []
+
         dice_value = roll_the_dice(20)
         if dice_value == 20:
             return []
@@ -131,19 +137,33 @@ class StandartRaid:
         already_met = self.__meets[player.uuid]
         met_players: List[PlayerPerson] = []
 
-        for other_player in self.players.values():
-            if other_player != player and other_player.is_alive:
-                dice_value = roll_the_dice(6) + already_met.get(other_player.uuid, 0)
-                if dice_value < 4:
-                    met_players.append(other_player)
-                    if other_player.uuid not in already_met:
-                        already_met[other_player.uuid] = 0
-                    if other_player.uuid not in self.__meets:
-                        self.__meets[other_player.uuid] = {}
-                    if player.uuid not in self.__meets[other_player.uuid]:
-                        self.__meets[other_player.uuid][player.uuid] = 0
-                    already_met[other_player.uuid] += 1
-                    self.__meets[other_player.uuid][player.uuid] += 1
+        players_keys = list(self.players.keys())
+        random.shuffle(players_keys)
+
+        for player_key in players_keys:
+            other_player = self.players[player_key]
+
+            if other_player == player or other_player.is_dead:
+                continue
+
+            dice_value = roll_the_dice(10) + already_met.get(other_player.uuid, 0) + len(met_players)
+            if dice_value >= 6:
+                continue
+
+            met_players.append(other_player)
+
+            if other_player.uuid not in already_met:
+                already_met[other_player.uuid] = 0
+            already_met[other_player.uuid] += 1
+
+            if other_player.uuid not in self.__meets:
+                self.__meets[other_player.uuid] = {}
+            if player.uuid not in self.__meets[other_player.uuid]:
+                self.__meets[other_player.uuid][player.uuid] = 0
+            self.__meets[other_player.uuid][player.uuid] += 1
+
+            if len(met_players) == self.MAX_PLAYERS_CAN_MEET:
+                break
 
         return met_players
 
@@ -154,11 +174,21 @@ class StandartRaid:
 
         met_bots: List[BotPerson] = []
 
-        for bot in self.bots.values():
-            if bot.is_alive:
-                dice_value = roll_the_dice(10)
-                if dice_value < 6:
-                    met_bots.append(bot)
+        bots_keys = list(self.bots.keys())
+        random.shuffle(bots_keys)
+
+        for bot_key in bots_keys:
+            bot = self.bots[bot_key]
+            if bot.is_dead:
+                continue
+
+            dice_value = roll_the_dice(10) + len(met_bots)
+            if dice_value >= 6:
+                continue
+
+            met_bots.append(bot)
+            if len(met_bots) == self.MAX_BOTS_CAN_MEET:
+                break
 
         return met_bots
 

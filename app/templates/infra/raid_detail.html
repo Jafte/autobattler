@@ -28,11 +28,33 @@
         </div>
         <div class="column">
             <h2 class="subtitle">Замеченные субъекты</h2>
-            {% for user_result in raid.users_result.values %}
-                <div class="block">{{ user_result.name }}</div>
+            {% for raid_robot in raid.users_result.values %}
+                <div class="block">
+                    {% if raid_robot.killed_by %}
+                        <span class="tag is-danger">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </span>
+                    {% else %}
+                        <span class="tag is-success">
+                            <i class="fa-solid fa-user-check"></i>
+                        </span>
+                    {% endif %}
+                    {{ raid_robot.name }}
+                </div>
             {% endfor %}
-            {% for bot_result in raid.bots_result.values %}
-                <div class="block">{{ bot_result.name }}</div>
+            {% for raid_bot in raid.bots_result.values %}
+                <div class="block">
+                    {% if raid_bot.killed_by %}
+                        <span class="tag is-danger">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </span>
+                    {% else %}
+                        <span class="tag is-success">
+                            <i class="fa-solid fa-user-check"></i>
+                        </span>
+                    {% endif %}
+                    {{ raid_bot.name }}
+                </div>
             {% endfor %}
         </div>
     </div>
