@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Raid, UserRaid
 
 
-class AdminUserRaid(admin.TabularInline):
+class AdminUserRaid(admin.StackedInline):
     model = UserRaid
     extra = 0
     can_delete = False

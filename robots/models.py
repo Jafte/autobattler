@@ -16,8 +16,13 @@ class Robot(models.Model):
     user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     status = models.CharField(max_length=64, choices=RobotStatus.choices, default=RobotStatus.WAITING)
+    experience = models.IntegerField(default=0)
     strength = models.SmallIntegerField(default=10)
-    agility = models.SmallIntegerField(default=10)
+    dexterity = models.SmallIntegerField(default=10)
+    constitution = models.SmallIntegerField(default=10)
+    wisdom = models.SmallIntegerField(default=10)
+    intelligence = models.SmallIntegerField(default=10)
+    charisma = models.SmallIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
     died_at = models.DateTimeField(blank=True, null=True)
@@ -49,6 +54,7 @@ class Robot(models.Model):
 
     def update_from_raid(self, robot_in_raid: "PlayerPerson"):
         self.status = RobotStatus.WAITING
+        self.experience = robot_in_raid.experience
         if robot_in_raid.is_dead:
             self.status = RobotStatus.DEAD
             self.died_at = timezone.now()

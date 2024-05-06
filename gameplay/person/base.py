@@ -5,34 +5,96 @@ from gameplay.dices import roll_the_dice
 
 
 class BasePerson:
+    # Base params from model object
     uuid: str
-    group: str
     name: str
+    # Group for friendly
+    group: str
+    # Ability Scores
+    speed: int
     strength: int
-    agility: int
+    dexterity: int
+    constitution: int
+    wisdom: int
+    intelligence: int
+    charisma: int
+    # Realtime params
     health: int
+    max_health: int
+    level: int
     experience: int
+    armor_class: int
     killed_by: Optional["BasePerson"]
     kills: Optional[list["BasePerson"]]
     action_log: list[str]
+    r: list[int]
+    v: list[int]
+    target: list[int]
 
-    def __init__(self, uuid: str, name: str, group: str, strength: int, agility: int) -> None:
+    LEVEL_PROGRESSION = [
+        0,
+        0,
+        300,
+        900,
+        2700,
+        6500,  # 5
+        14000,
+        23000,
+        34000,
+        48000,
+        64000,  # 10
+        85000,
+        100000,
+        120000,
+        140000,
+        165000,  # 15
+        195000,
+        225000,
+        265000,
+        305000,
+        355000,  # 20
+    ]
+
+    def __init__(
+            self,
+            uuid: str,
+            name: str,
+            group: str,
+            experience: int,
+            strength: int,
+            dexterity: int,
+            constitution: int,
+            wisdom: int,
+            intelligence: int,
+            charisma: int,
+    ) -> None:
         self.group = group.upper()
         self.uuid = uuid
         self.name = name
+        self.experience = experience
         self.strength = strength
-        self.agility = agility
-        self.health = self.max_health
-        self.experience = 0
+        self.dexterity = dexterity
+        self.constitution = constitution
+        self.wisdom = wisdom
+        self.intelligence = intelligence
+        self.charisma = charisma
+
+        self.level = BasePerson.get_level_at_experience(self.experience)
+        self.armor_class = BasePerson.get_base_armor_class(self.dexterity)
+        self.speed = BasePerson.get_base_speed(self.dexterity)
+        self.health = self.max_health = BasePerson.get_maximum_hp(self.level, self.constitution)
+
         self.killed_by = None
         self.kills = []
         self.action_log = []
+        self.r = [random.randint(1, 1000), random.randint(1, 1000)]
+        self.target = [random.randint(1, 1000), random.randint(1, 1000)]
 
     def __str__(self) -> str:
-        return f"{self.name} [{self.health}/{self.max_health}]"
+        return f"{self.name} (lvl {self.level}) [{self.health}/{self.max_health}]"
 
     def __repr__(self) -> str:
-        return f"{self.name} [{self.health}/{self.max_health}]"
+        return f"{self.name} (lvl {self.level}) [{self.health}/{self.max_health}]"
 
     @property
     def is_alive(self) -> bool:
@@ -46,24 +108,22 @@ class BasePerson:
     def need_healing(self) -> bool:
         return self.health < self.max_health
 
-    @property
-    def max_health(self) -> int:
-        return 10 + self.strength * 10
-
     def get_initiative(self) -> int:
-        return roll_the_dice(20) + self.agility
-
-    def get_defence_rate(self) -> int:
-        return roll_the_dice(20) + self.agility
+        return roll_the_dice(20) + BasePerson.get_ability_modifier(self.dexterity)
 
     def get_attack_rate(self) -> int:
-        return roll_the_dice(20) + self.agility
+        dice_roll = roll_the_dice(20)
+        if dice_roll == 20:
+            return 1000
+        if dice_roll == 1:
+            return 0
+        return dice_roll + BasePerson.get_ability_modifier(self.dexterity)
 
     def get_damage_volume(self) -> int:
-        return roll_the_dice(10) + self.strength
+        return roll_the_dice(5) + roll_the_dice(5) + BasePerson.get_ability_modifier(self.strength) * 2
 
     def get_healing_volume(self) -> int:
-        return roll_the_dice(10) + self.strength
+        return roll_the_dice(10) + BasePerson.get_ability_modifier(self.constitution)
 
     def hit(self, value: int):
         if self.is_dead:
@@ -88,6 +148,34 @@ class BasePerson:
         self.action_log.append(message)
 
     def attack(self, person: 'BasePerson') -> bool:
-        if person.get_defence_rate() > self.get_attack_rate():
+        if person.armor_class > self.get_attack_rate():
             return False
         return True
+
+    @staticmethod
+    def get_ability_modifier(number: int) -> int:
+        return (number - 10) // 2
+
+    @staticmethod
+    def get_maximum_hp(level: int, constitution: int) -> int:
+        return (
+                10
+                + 6 * (level - 1)
+                + BasePerson.get_ability_modifier(constitution)
+        )
+
+    @staticmethod
+    def get_base_armor_class(dexterity: int) -> int:
+        return 10 + BasePerson.get_ability_modifier(dexterity)
+
+    @staticmethod
+    def get_base_speed(dexterity: int) -> int:
+        return 20 + BasePerson.get_ability_modifier(dexterity) * 2
+
+    @staticmethod
+    def get_level_at_experience(experience: int) -> int:
+        for level, threshold in enumerate(BasePerson.LEVEL_PROGRESSION):
+            if experience >= threshold:
+                continue
+            return level - 1
+        return 20

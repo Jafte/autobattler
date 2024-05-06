@@ -13,6 +13,11 @@ class PlayerPerson(BasePerson):
             uuid=robot_model.uuid,
             name=robot_model.name,
             group=f"user_{robot_model.user.pk}",
+            experience=robot_model.experience,
             strength=robot_model.strength,
-            agility=robot_model.agility,
+            dexterity=robot_model.dexterity,
+            constitution=robot_model.constitution,
+            wisdom=robot_model.wisdom,
+            intelligence=robot_model.intelligence,
+            charisma=robot_model.charisma,
         )

@@ -62,6 +62,30 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.experience.id_for_label }}" class="label">
+                                        Боевой опыт
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.experience.errors %}is-danger{% endif %}"
+                                                id="{{ form.experience.id }}"
+                                                type="text"
+                                                name="{{ form.experience.html_name }}"
+                                                value="{{ form.experience.value | default:'' }}"
+                                        >
+                                        <div class="help">Больше 355 000 единиц уже не имеет значения</div>
+                                        {% if form.experience.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.experience.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="columns">
                             <div class="column">
@@ -90,21 +114,121 @@
                             </div>
                             <div class="column">
                                 <div class="field">
-                                    <label for="{{ form.agility.id_for_label }}" class="label">
+                                    <label for="{{ form.dexterity.id_for_label }}" class="label">
                                         Подвижность
                                     </label>
                                     <div class="control">
                                         <input
-                                                class="input {% if form.agility.errors %}is-danger{% endif %}"
-                                                id="{{ form.agility.id }}"
+                                                class="input {% if form.dexterity.errors %}is-danger{% endif %}"
+                                                id="{{ form.dexterity.id }}"
                                                 type="text"
-                                                name="{{ form.agility.html_name }}"
-                                                value="{{ form.agility.value | default:10 }}"
+                                                name="{{ form.dexterity.html_name }}"
+                                                value="{{ form.dexterity.value | default:10 }}"
                                         >
                                         <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.agility.errors %}
+                                        {% if form.dexterity.errors %}
                                         <ul class="help is-danger">
-                                            {% for error in form.agility.errors %}
+                                            {% for error in form.dexterity.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.intelligence.id_for_label }}" class="label">
+                                        Вычислительные блоки
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.intelligence.errors %}is-danger{% endif %}"
+                                                id="{{ form.intelligence.id }}"
+                                                type="text"
+                                                name="{{ form.intelligence.html_name }}"
+                                                value="{{ form.intelligence.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.intelligence.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.intelligence.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.constitution.id_for_label }}" class="label">
+                                        Запас прочности
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.constitution.errors %}is-danger{% endif %}"
+                                                id="{{ form.constitution.id }}"
+                                                type="text"
+                                                name="{{ form.constitution.html_name }}"
+                                                value="{{ form.constitution.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.constitution.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.constitution.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.wisdom.id_for_label }}" class="label">
+                                        Размер управляющего ядра
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.wisdom.errors %}is-danger{% endif %}"
+                                                id="{{ form.wisdom.id }}"
+                                                type="text"
+                                                name="{{ form.wisdom.html_name }}"
+                                                value="{{ form.wisdom.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.wisdom.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.wisdom.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="field">
+                                    <label for="{{ form.charisma.id_for_label }}" class="label">
+                                        Коммуникативные возможности
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                                class="input {% if form.charisma.errors %}is-danger{% endif %}"
+                                                id="{{ form.charisma.id }}"
+                                                type="text"
+                                                name="{{ form.charisma.html_name }}"
+                                                value="{{ form.charisma.value | default:10 }}"
+                                        >
+                                        <div class="help">В диапазоне от 0 до 20</div>
+                                        {% if form.charisma.errors %}
+                                        <ul class="help is-danger">
+                                            {% for error in form.charisma.errors %}
                                                 <li>{{ error }}</li>
                                             {% endfor %}
                                         </ul>

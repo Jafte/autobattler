@@ -50,8 +50,13 @@ class RobotCreateView(LoginRequiredMixin, CreateView):
         self.object = Robot(
             user=self.request.user,
             name=form.cleaned_data["name"],
+            experience=form.cleaned_data["experience"],
             strength=form.cleaned_data["strength"],
-            agility=form.cleaned_data["agility"],
+            dexterity=form.cleaned_data["dexterity"],
+            intelligence=form.cleaned_data["intelligence"],
+            constitution=form.cleaned_data["constitution"],
+            wisdom=form.cleaned_data["wisdom"],
+            charisma=form.cleaned_data["charisma"],
         )
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())

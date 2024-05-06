@@ -24,7 +24,8 @@ class Raid(models.Model):
     def create_from_game(cls, gameplay_raid: "StandartRaid"):
         raid = cls()
         bot_dict_to_save = {}
-        for bot in gameplay_raid.bots.values():
+        for bot_key in gameplay_raid.bots:
+            bot = gameplay_raid.persons[bot_key]
             bot_dict_to_save[str(bot.uuid)] = {
                 "name": bot.name,
                 "health": bot.health,
@@ -34,7 +35,8 @@ class Raid(models.Model):
         raid.bots_result = bot_dict_to_save
 
         users_dict_to_save = {}
-        for player in gameplay_raid.players.values():
+        for user_key in gameplay_raid.users:
+            player = gameplay_raid.persons[user_key]
             users_dict_to_save[str(player.uuid)] = {
                 "name": player.name,
                 "health": player.health,
@@ -47,8 +49,9 @@ class Raid(models.Model):
         raid.action_log = gameplay_raid.action_log
         raid.save()
 
-        for robot_in_raid in gameplay_raid.players.values():
-            robot = Robot.objects.get(pk=robot_in_raid.uuid)
+        for robot_in_raid_pk in gameplay_raid.users:
+            robot_in_raid = gameplay_raid.persons[robot_in_raid_pk]
+            robot = Robot.objects.get(pk=robot_in_raid_pk)
             robot.update_from_raid(robot_in_raid)
             robot.save()
             bots_killed_list = list(filter(lambda x: isinstance(x, BotPerson), robot_in_raid.kills))
@@ -66,6 +69,7 @@ class Raid(models.Model):
                 result={
                     "health": robot_in_raid.health,
                     "killed_by": robot_in_raid.killed_by.name if robot_in_raid.killed_by else '',
+                    "log": robot_in_raid.action_log,
                 }
             )
             user_raid.save()
