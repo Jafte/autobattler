@@ -1,3 +1,5 @@
+import logging
+
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
@@ -7,6 +9,8 @@ from robots.enums import RobotStatus
 from robots.models import Robot
 from raids.models import Raid
 
+
+logger = logging.getLogger('huey')
 
 @db_periodic_task(crontab(minute="*"))
 @lock_task("start_raids")
@@ -23,6 +27,10 @@ def start_raids():
 @db_task()
 def play_raid(raid_robots_ids: list['str']):
     robot_to_raid = Robot.objects.filter(pk__in=raid_robots_ids)
-    game = StandartRaid.create_for_users(robot_to_raid)
-    game.play()
-    Raid.create_from_game(game)
+    try:
+        game = StandartRaid.create_for_users(robot_to_raid)
+        game.play()
+        Raid.create_from_game(game)
+    except Exception as e:
+        logger.exception(e)
+        robot_to_raid.update(status=RobotStatus.WAITING)

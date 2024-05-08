@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
+from gameplay.dices import roll_ability_dice
 from robots.enums import RobotAction, RobotStatus
 from robots.forms import RobotActionForm, RobotCreatForm
 from robots.models import Robot
@@ -45,6 +46,17 @@ class RobotCreateView(LoginRequiredMixin, CreateView):
     model = Robot
     form_class = RobotCreatForm
     template_name = "infra/robot_add.html"
+
+    def get_initial(self):
+        return {
+            "experience": "0",
+            "strength": roll_ability_dice(),
+            "dexterity": roll_ability_dice(),
+            "intelligence": roll_ability_dice(),
+            "constitution": roll_ability_dice(),
+            "wisdom": roll_ability_dice(),
+            "charisma": roll_ability_dice(),
+        }
 
     def form_valid(self, form):
         self.object = Robot(

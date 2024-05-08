@@ -8,6 +8,7 @@ from .models import Robot
 class AdminRobot(admin.ModelAdmin):
     list_display = ("name", "status", "created_at", "user",)
     list_filter = ("status",)
+    ordering = ("-created_at",)
     inlines = [
         AdminUserRaid
     ]

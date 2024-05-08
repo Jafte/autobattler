@@ -120,10 +120,10 @@ class BasePerson:
         return dice_roll + BasePerson.get_ability_modifier(self.dexterity)
 
     def get_damage_volume(self) -> int:
-        return roll_the_dice(5) + roll_the_dice(5) + BasePerson.get_ability_modifier(self.strength) * 2
+        return roll_the_dice(6) + BasePerson.get_ability_modifier(self.strength)
 
     def get_healing_volume(self) -> int:
-        return roll_the_dice(10) + BasePerson.get_ability_modifier(self.constitution)
+        return roll_the_dice(6) + BasePerson.get_ability_modifier(self.constitution)
 
     def hit(self, value: int):
         if self.is_dead:
@@ -146,6 +146,20 @@ class BasePerson:
 
     def log(self, message: str):
         self.action_log.append(message)
+
+    def json(self):
+        return {
+            "name": self.name,
+            "level": self.level,
+            "strength": self.strength,
+            "dexterity": self.dexterity,
+            "intelligence": self.intelligence,
+            "constitution": self.constitution,
+            "wisdom": self.wisdom,
+            "charisma": self.charisma,
+            "killed_by": str(self.killed_by.uuid) if self.killed_by else '',
+            "kills": [str(x.uuid) for x in self.kills],
+        }
 
     def attack(self, person: 'BasePerson') -> bool:
         if person.armor_class > self.get_attack_rate():

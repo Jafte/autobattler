@@ -35,10 +35,19 @@
                         Мощность: {{ robot.strength }}
                     </div>
                     <div class="block">
-                        Подвижность: {{ robot.agility }}
+                        Подвижность: {{ robot.dexterity }}
                     </div>
                     <div class="block">
-                        Статус: {{ robot.get_status_display }}
+                        Вычислительные блоки: {{ robot.intelligence }}
+                    </div>
+                    <div class="block">
+                        Запас прочности: {{ robot.constitution }}
+                    </div>
+                    <div class="block">
+                        Размер управляющего ядра: {{ robot.wisdom }}
+                    </div>
+                    <div class="block">
+                        Коммуникативные возможности: {{ robot.charisma }}
                     </div>
                 </div>
             </div>
@@ -84,6 +93,33 @@
             </div>
         </div>
         <div class="column">
+            <div class="card block">
+                <header class="card-header">
+                    <div class="card-header-title">
+                        Статус
+                    </div>
+                    <div class="card-header-icon">
+                        <span class="icon">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </span>
+                    </div>
+                </header>
+                <div class="card-content">
+                    <div class="block">
+                        {{ robot.get_status_display }}
+                    </div>
+                    {% if robot.is_dead %}
+                    <div class="block">
+                        Время потери сигнала {{ robot.died_at }}
+                    </div>
+                        {% if robot.killed_by %}
+                        <div class="block">
+                            Последний наблюдаемый объект {{ robot.killed_by.name }}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
             <div class="card block">
                 <header class="card-header">
                     <div class="card-header-title">

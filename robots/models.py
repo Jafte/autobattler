@@ -26,6 +26,7 @@ class Robot(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
     died_at = models.DateTimeField(blank=True, null=True)
+    killed_by = models.JSONField(default=dict, blank=True)
     epitaph = models.TextField(blank=True)
 
     def __str__(self):
@@ -58,4 +59,5 @@ class Robot(models.Model):
         if robot_in_raid.is_dead:
             self.status = RobotStatus.DEAD
             self.died_at = timezone.now()
+            self.killed_by = robot_in_raid.killed_by.json()
             self.epitaph = f"Убит {robot_in_raid.killed_by}"

@@ -28,9 +28,9 @@
         </div>
         <div class="column">
             <h2 class="subtitle">Замеченные субъекты</h2>
-            {% for raid_robot in raid.users_result.values %}
+            {% for raid_robot in raid.raid_robots.all %}
                 <div class="block">
-                    {% if raid_robot.killed_by %}
+                    {% if raid_robot.is_died %}
                         <span class="tag is-danger">
                             <i class="fa-solid fa-user-slash"></i>
                         </span>
@@ -39,7 +39,13 @@
                             <i class="fa-solid fa-user-check"></i>
                         </span>
                     {% endif %}
-                    {{ raid_robot.name }}
+                    {% if raid_robot.user == user %}
+                    <a href="{% url 'infra_robot_detail' raid_robot.robot.pk %}">
+                        {{ raid_robot.robot.name }}
+                    </a>
+                    {% else %}
+                    {{ raid_robot.robot.name }}
+                    {% endif %}
                 </div>
             {% endfor %}
             {% for raid_bot in raid.bots_result.values %}

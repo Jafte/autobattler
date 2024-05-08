@@ -17,6 +17,7 @@ class AdminUserRaid(admin.StackedInline):
 @admin.register(Raid)
 class AdminRaid(admin.ModelAdmin):
     list_display = ("pk", "created_at")
+    ordering = ("-created_at",)
     inlines = [
         AdminUserRaid,
     ]
