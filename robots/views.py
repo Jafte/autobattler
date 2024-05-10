@@ -1,8 +1,11 @@
+import jwt
+from django.conf import settings
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
-from django.views.generic import DetailView, ListView, CreateView, FormView
+from django.views.generic import DetailView, ListView, FormView
 
-from gameplay.dices import roll_ability_dice
+from raids.tasks import play_raid
 from robots.enums import RobotAction, RobotStatus
 from robots.forms import RobotActionForm, RobotCreatForm
 from robots.models import Robot
@@ -34,41 +37,43 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
         self.object = self.get_object()
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
-            self.object.status = RobotStatus.PREPARATION
+            # self.object.status = RobotStatus.PREPARATION
+            self.object.status = RobotStatus.ON_MISSION
             self.object.save()
+            play_raid([self.object.pk,])
         if action == RobotAction.DISASSEMBLE:
             self.object.status = RobotStatus.DEAD
             self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
 
-class RobotCreateView(LoginRequiredMixin, CreateView):
-    model = Robot
+class RobotCreateView(LoginRequiredMixin, FormView):
     form_class = RobotCreatForm
     template_name = "infra/robot_add.html"
 
-    def get_initial(self):
-        return {
-            "experience": "0",
-            "strength": roll_ability_dice(),
-            "dexterity": roll_ability_dice(),
-            "intelligence": roll_ability_dice(),
-            "constitution": roll_ability_dice(),
-            "wisdom": roll_ability_dice(),
-            "charisma": roll_ability_dice(),
-        }
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.request.user.robot_options:
+            self.request.user.generate_new_robot_options()
+        context["robot_options"] = self.request.user.robot_options
+        active_robots_num = Robot.objects.filter(user=self.request.user).exclude(status=RobotStatus.DEAD).count()
+        active_robots_max = self.request.user.get_max_robots()
+        context["can_create_robots"] = active_robots_num < active_robots_max
+        return context
 
     def form_valid(self, form):
+        key = settings.SECRET_KEY
+        robot_option = jwt.decode(form.cleaned_data["robot_option_key"], key, algorithms="HS256")
         self.object = Robot(
             user=self.request.user,
             name=form.cleaned_data["name"],
-            experience=form.cleaned_data["experience"],
-            strength=form.cleaned_data["strength"],
-            dexterity=form.cleaned_data["dexterity"],
-            intelligence=form.cleaned_data["intelligence"],
-            constitution=form.cleaned_data["constitution"],
-            wisdom=form.cleaned_data["wisdom"],
-            charisma=form.cleaned_data["charisma"],
+            strength=robot_option["strength"],
+            dexterity=robot_option["dexterity"],
+            intelligence=robot_option["intelligence"],
+            constitution=robot_option["constitution"],
+            wisdom=robot_option["wisdom"],
+            charisma=robot_option["charisma"],
         )
         self.object.save()
-        return HttpResponseRedirect(self.get_success_url())
+        self.request.user.generate_new_robot_options()
+        return HttpResponseRedirect(self.object.get_absolute_url())

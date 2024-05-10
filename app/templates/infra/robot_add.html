@@ -17,283 +17,124 @@
     </div>
     <h1 class="title">Новый робот</h1>
     <hr/>
-    <div class="columns">
-        <div class="column">
-            <div class="card">
-                <header class="card-header">
-                    <div class="card-header-title">
-                        Ваша зона ответственности
-                    </div>
-                </header>
-                <div class="card-content">
-                    {% if form.non_field_errors %}
-                    <div class="notification is-danger">
-                        <ul>
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    <form action="{% url 'infra_robot_add' %}" method="post">
-                        {% csrf_token %}
-                        <div class="columns">
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.name.id_for_label }}" class="label">
-                                        Имя
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.name.errors %}is-danger{% endif %}"
-                                                id="{{ form.name.id }}"
-                                                type="text"
-                                                name="{{ form.name.html_name }}"
-                                                value="{{ form.name.value | default:'' }}"
-                                        >
-                                        <div class="help">Минимум 1 символ, максимум красоты</div>
-                                        {% if form.name.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.name.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.experience.id_for_label }}" class="label">
-                                        Боевой опыт
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.experience.errors %}is-danger{% endif %}"
-                                                id="{{ form.experience.id }}"
-                                                type="text"
-                                                name="{{ form.experience.html_name }}"
-                                                value="{{ form.experience.value | default:'' }}"
-                                        >
-                                        <div class="help">Больше 355 000 единиц уже не имеет значения</div>
-                                        {% if form.experience.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.experience.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="columns">
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.strength.id_for_label }}" class="label">
-                                        Мощность
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.strength.errors %}is-danger{% endif %}"
-                                                id="{{ form.strength.id }}"
-                                                type="text"
-                                                name="{{ form.strength.html_name }}"
-                                                value="{{ form.strength.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.strength.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.strength.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.dexterity.id_for_label }}" class="label">
-                                        Подвижность
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.dexterity.errors %}is-danger{% endif %}"
-                                                id="{{ form.dexterity.id }}"
-                                                type="text"
-                                                name="{{ form.dexterity.html_name }}"
-                                                value="{{ form.dexterity.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.dexterity.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.dexterity.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="columns">
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.intelligence.id_for_label }}" class="label">
-                                        Вычислительные блоки
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.intelligence.errors %}is-danger{% endif %}"
-                                                id="{{ form.intelligence.id }}"
-                                                type="text"
-                                                name="{{ form.intelligence.html_name }}"
-                                                value="{{ form.intelligence.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.intelligence.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.intelligence.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.constitution.id_for_label }}" class="label">
-                                        Запас прочности
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.constitution.errors %}is-danger{% endif %}"
-                                                id="{{ form.constitution.id }}"
-                                                type="text"
-                                                name="{{ form.constitution.html_name }}"
-                                                value="{{ form.constitution.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.constitution.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.constitution.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <div class="columns">
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.wisdom.id_for_label }}" class="label">
-                                        Размер управляющего ядра
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.wisdom.errors %}is-danger{% endif %}"
-                                                id="{{ form.wisdom.id }}"
-                                                type="text"
-                                                name="{{ form.wisdom.html_name }}"
-                                                value="{{ form.wisdom.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.wisdom.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.wisdom.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="column">
-                                <div class="field">
-                                    <label for="{{ form.charisma.id_for_label }}" class="label">
-                                        Коммуникативные возможности
-                                    </label>
-                                    <div class="control">
-                                        <input
-                                                class="input {% if form.charisma.errors %}is-danger{% endif %}"
-                                                id="{{ form.charisma.id }}"
-                                                type="text"
-                                                name="{{ form.charisma.html_name }}"
-                                                value="{{ form.charisma.value | default:10 }}"
-                                        >
-                                        <div class="help">В диапазоне от 0 до 20</div>
-                                        {% if form.charisma.errors %}
-                                        <ul class="help is-danger">
-                                            {% for error in form.charisma.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="columns">
-                            <div class="column">
-                                <div class="field">
-                                    <div class="control">
-                                        <button class="button is-link">
-                                            Создать
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="column">
-            <div class="card">
-                <header class="card-header">
-                    <div class="card-header-title">
-                        Справочные данные
-                    </div>
-                </header>
-                <div class="card-content">
-                    <div class="block">
-                        <b>Имя</b> - название вашего робота разведчика которые будет
-                        красивыми золотыми буквами выбито на его внутренней обшивке.
-                    </div>
-                    <div class="block">
-                        <b>Боевой опыт</b> - накопленные знания в рамках боевой программы.
-                        Многие знания - многие уровни развития.
-                    </div>
-                    <div class="block">
-                        <b>Мощность</b> - напрямую влияет на наносимый урон.
-                        Требует много энергии, вызывает зависимость от власти.
-                    </div>
-                    <div class="block">
-                        <b>Подвижность</b> - влияет на маневренность и скорость реакции.
-                        Так же расходует энергию и порождает ветер от невероятно быстрых движений.
-                    </div>
-                    <div class="block">
-                        <b>Вычислительные блоки</b> - влияет на возможность применений особых боевых программ.
-                        Требуется операционная система не ниже Windows XP.
-                    </div>
-                    <div class="block">
-                        <b>Запас прочности</b> - влияет на количество очков прочности и количество восстанавливаемой
-                        прочности в процессе ремонта. Не вернет упущенное, но поможет дожить до глубокой депрессии.
-                    </div>
-                    <div class="block">
-                        <b>Размер управляющего ядра</b> - позволяет видеть больше, чем роботы с маленьким ядром.
-                        На само ядро смотреть не нужно. Не смотри на ядро.
-                    </div>
-                    <div class="block">
-                        <b>Коммуникативные возможности</b> - умение вести диалог, договариваться и уходить от ответственности.
-                        Возможно и делать ничего не придется. Но это не точно.
-                    </div>
-                </div>
-            </div>
-        </div>
+    {% if form.non_field_errors %}
+    <div class="notification is-danger">
+        <ul>
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
     </div>
+    {% endif %}
+    <div class="columns">
+        {% if can_create_robots %}
+            {% for option in robot_options %}
+            <div class="column">
+                <form action="{% url 'infra_robot_add' %}" method="post">
+                    {% csrf_token %}
+                    <div class="card">
+                        <header class="card-header">
+                            <div class="card-header-title">
+                                <input class="input" type="text" name="name" value="{{ option.name | default:forloop.counter }}">
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <table class="table">
+                                <tr>
+                                    <td><b>Мощность</b></td>
+                                    <td>{{ option.data.strength }}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Подвижность</b></td>
+                                    <td>{{ option.data.dexterity }}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Вычислительные блоки</b></td>
+                                    <td>{{ option.data.intelligence }}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Запас прочности</b></td>
+                                    <td>{{ option.data.constitution }}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Размер управляющего ядра</b></td>
+                                    <td>{{ option.data.wisdom }}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Коммуникативные возможности</b></td>
+                                    <td>{{ option.data.charisma }}</td>
+                                </tr>
+                            </table>
+                            <input type="hidden" name="robot_option_key" value="{{ option.key }}">
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <div class="control">
+                                            <button class="button is-link">
+                                                Выбрать
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="column">
+            <div class="block has-text-danger">
+                Достигнут текущий лимит разведчиков
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% if can_create_robots %}
+        <div class="columns">
+            <div class="column">
+                <div class="card">
+                    <header class="card-header">
+                        <div class="card-header-title">
+                            Справочные данные
+                        </div>
+                    </header>
+                    <div class="card-content">
+                        <div class="block">
+                            <b>Имя</b> - название вашего робота разведчика которые будет
+                            красивыми золотыми буквами выбито на его внутренней обшивке.
+                        </div>
+                        <div class="block">
+                            <b>Боевой опыт</b> - накопленные знания в рамках боевой программы.
+                            Многие знания - многие уровни развития.
+                        </div>
+                        <div class="block">
+                            <b>Мощность</b> - напрямую влияет на наносимый урон.
+                            Требует много энергии, вызывает зависимость от власти.
+                        </div>
+                        <div class="block">
+                            <b>Подвижность</b> - влияет на маневренность и скорость реакции.
+                            Так же расходует энергию и порождает ветер от невероятно быстрых движений.
+                        </div>
+                        <div class="block">
+                            <b>Вычислительные блоки</b> - влияет на возможность применений особых боевых программ.
+                            Требуется операционная система не ниже Windows XP.
+                        </div>
+                        <div class="block">
+                            <b>Запас прочности</b> - влияет на количество очков прочности и количество восстанавливаемой
+                            прочности в процессе ремонта. Не вернет упущенное, но поможет дожить до глубокой депрессии.
+                        </div>
+                        <div class="block">
+                            <b>Размер управляющего ядра</b> - позволяет видеть больше, чем роботы с маленьким ядром.
+                            На само ядро смотреть не нужно. Не смотри на ядро.
+                        </div>
+                        <div class="block">
+                            <b>Коммуникативные возможности</b> - умение вести диалог, договариваться и уходить от ответственности.
+                            Возможно и делать ничего не придется. Но это не точно.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

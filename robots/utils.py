@@ -1,6 +1,20 @@
 import random
 
 
+def craete_new_name():
+    syllables = [
+        "ал", "ан", "ар", "ва", "ви", "га", "да", "ди", "ев", "ел",
+        "ен", "ив", "иг", "ил", "ин", "ка", "ки", "ко", "ла", "ле",
+        "ли", "лю", "ма", "ми", "на", "не", "ни", "ол", "он", "па",
+        "ра", "ре", "ри", "ро", "са", "се", "си", "со", "та", "те",
+        "ти", "то", "ул", "фе", "ха", "че", "ша", "эл", "ян", "яр"
+    ]
+    num_syllables = random.randint(2, 6)
+    name_parts = [random.choice(syllables) for _ in range(num_syllables)]
+    name = ''.join(name_parts)
+    return name.capitalize()
+
+
 def generate_random_name() -> str:
     first_name = [
         "Александр",

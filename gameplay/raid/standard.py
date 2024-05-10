@@ -29,14 +29,18 @@ class StandartRaid:
 
     @classmethod
     def create_for_users(cls, robots_list: list["Robot"]) -> "StandartRaid":
-        raid = cls(
-            max_cycles=100,
-        )
-
         max_level = 1
+        persons = []
         for robot in robots_list:
             person = PlayerPerson.create(robot)
             max_level = max(max_level, person.level)
+            persons.append(person)
+
+        max_cycles = max_level * 10
+        raid = cls(
+            max_cycles=max_cycles,
+        )
+        for person in persons:
             raid.join(person)
 
         raid_bots = 0
@@ -93,8 +97,10 @@ class StandartRaid:
                         continue
 
                     healing_volume = person.get_healing_volume()
-                    person.heal(healing_volume)
-                    action_msg = f"спокойно полечился на {healing_volume}"
+                    action_msg = f"пытался полечился, но что-то пошло не так"
+                    if healing_volume:
+                        action_msg = f"спокойно полечился на {healing_volume}"
+                        person.heal(healing_volume)
                     person.log(action_msg)
                     self.action_log.append(f"{person} {action_msg}")
                     continue

@@ -1,33 +1,21 @@
+import jwt
 from django import forms
+from django.conf import settings
 
-from gameplay.person import BasePerson
 from robots.enums import RobotAction
-from robots.models import Robot
 
 
 class RobotActionForm(forms.Form):
     action = forms.ChoiceField(choices=[('', '-- выберите действие --')] + RobotAction.choices)
 
 
-class RobotCreatForm(forms.ModelForm):
+class RobotCreatForm(forms.Form):
     name = forms.CharField(max_length=100)
-    experience = forms.IntegerField(min_value=0)
-    strength = forms.IntegerField(max_value=20, min_value=0)
-    dexterity = forms.IntegerField(max_value=20, min_value=0)
-    intelligence = forms.IntegerField(max_value=20, min_value=0)
-    constitution = forms.IntegerField(max_value=20, min_value=0)
-    wisdom = forms.IntegerField(max_value=20, min_value=0)
-    charisma = forms.IntegerField(max_value=20, min_value=0)
+    robot_option_key = forms.CharField(widget=forms.HiddenInput())
 
-    class Meta:
-        model = Robot
-        fields = [
-            "name",
-            "experience",
-            "strength",
-            "dexterity",
-            "intelligence",
-            "constitution",
-            "wisdom",
-            "charisma",
-        ]
+    def clean(self):
+        robot_option_key = self.cleaned_data['robot_option_key']
+        try:
+            jwt.decode(robot_option_key, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.exceptions.DecodeError:
+            raise forms.ValidationError(message="Жулишь?")

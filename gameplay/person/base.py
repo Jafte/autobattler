@@ -109,7 +109,8 @@ class BasePerson:
         return self.health < self.max_health
 
     def get_initiative(self) -> int:
-        return roll_the_dice(20) + BasePerson.get_ability_modifier(self.dexterity)
+        value = roll_the_dice(20) + BasePerson.get_ability_modifier(self.dexterity)
+        return max(value, 0)
 
     def get_attack_rate(self) -> int:
         dice_roll = roll_the_dice(20)
@@ -117,13 +118,16 @@ class BasePerson:
             return 1000
         if dice_roll == 1:
             return 0
-        return dice_roll + BasePerson.get_ability_modifier(self.dexterity)
+        value = dice_roll + BasePerson.get_ability_modifier(self.dexterity)
+        return max(value, 0)
 
     def get_damage_volume(self) -> int:
-        return roll_the_dice(6) + BasePerson.get_ability_modifier(self.strength)
+        value = roll_the_dice(6) + BasePerson.get_ability_modifier(self.strength)
+        return max(value, 0)
 
     def get_healing_volume(self) -> int:
-        return roll_the_dice(6) + BasePerson.get_ability_modifier(self.constitution)
+        value = roll_the_dice(6) + BasePerson.get_ability_modifier(self.constitution)
+        return max(value, 0)
 
     def hit(self, value: int):
         if self.is_dead:

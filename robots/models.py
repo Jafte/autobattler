@@ -50,12 +50,13 @@ class Robot(models.Model):
         if self.status == RobotStatus.PREPARATION:
             return "is-warning"
         if self.status == RobotStatus.ON_MISSION:
-            return "is-warning"
+            return "is-info"
         return "12"
 
     def update_from_raid(self, robot_in_raid: "PlayerPerson"):
         self.status = RobotStatus.WAITING
         self.experience = robot_in_raid.experience
+        self.user.add_experience(self.experience)
         if robot_in_raid.is_dead:
             self.status = RobotStatus.DEAD
             self.died_at = timezone.now()

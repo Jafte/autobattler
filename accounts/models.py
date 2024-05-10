@@ -1,3 +1,5 @@
+import jwt
+from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
@@ -5,6 +7,9 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from gameplay.dices import roll_ability_dice
+from robots.utils import craete_new_name
 
 
 class UserManager(BaseUserManager):
@@ -81,6 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
     experience = models.IntegerField(_("experience"), default=0)
     level = models.IntegerField(_("level"), default=1)
+    robot_options = models.JSONField(_("robot options"), default=dict)
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
@@ -90,3 +96,48 @@ class User(AbstractBaseUser, PermissionsMixin):
     def add_experience(self, value: int):
         self.experience += value
         self.save()
+
+    def generate_new_robot_options(self):
+        key = settings.SECRET_KEY
+        options = [
+            {
+                "name": craete_new_name(),
+                "data": {
+                    "strength": roll_ability_dice(),
+                    "dexterity": roll_ability_dice(),
+                    "intelligence": roll_ability_dice(),
+                    "constitution": roll_ability_dice(),
+                    "wisdom": roll_ability_dice(),
+                    "charisma": roll_ability_dice(),
+                }
+            },
+            {
+                "name": craete_new_name(),
+                "data": {
+                    "strength": roll_ability_dice(),
+                    "dexterity": roll_ability_dice(),
+                    "intelligence": roll_ability_dice(),
+                    "constitution": roll_ability_dice(),
+                    "wisdom": roll_ability_dice(),
+                    "charisma": roll_ability_dice(),
+                }
+            },
+            {
+                "name": craete_new_name(),
+                "data": {
+                    "strength": roll_ability_dice(),
+                    "dexterity": roll_ability_dice(),
+                    "intelligence": roll_ability_dice(),
+                    "constitution": roll_ability_dice(),
+                    "wisdom": roll_ability_dice(),
+                    "charisma": roll_ability_dice(),
+                }
+            },
+        ]
+        for option in options:
+            option["key"] = jwt.encode(option["data"], key, algorithm="HS256")
+        self.robot_options = options
+        self.save()
+
+    def get_max_robots(self):
+        return 1
