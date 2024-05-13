@@ -46,6 +46,9 @@
                     {% else %}
                     {{ raid_robot.robot.name }}
                     {% endif %}
+                    <br/>
+                    S{{ raid_robot.robot.strength }}, D{{ raid_robot.robot.dexterity }}, C{{ raid_robot.robot.constitution }},
+                    W{{ raid_robot.robot.wisdom }}, I{{ raid_robot.robot.intelligence }}, CH{{ raid_robot.robot.charisma }}
                 </div>
             {% endfor %}
             {% for raid_bot in raid.bots_result.values %}

@@ -82,7 +82,7 @@ class BasePerson:
 
         self.level = BasePerson.get_level_at_experience(self.experience)
         self.armor_class = BasePerson.get_base_armor_class(self.constitution)
-        self.firewall_class = BasePerson.get_base_armor_class(self.wisdom)
+        self.firewall_class = BasePerson.get_base_firewall_class(self.wisdom)
         self.speed = BasePerson.get_base_speed(self.dexterity)
         self.health = self.max_health = BasePerson.get_maximum_hp(self.level, self.constitution)
 
@@ -201,6 +201,10 @@ class BasePerson:
     @staticmethod
     def get_base_armor_class(constitution: int) -> int:
         return 10 + BasePerson.get_ability_modifier(constitution)
+
+    @staticmethod
+    def get_base_firewall_class(wisdom: int) -> int:
+        return 15 + BasePerson.get_ability_modifier(wisdom)
 
     @staticmethod
     def get_base_speed(dexterity: int) -> int:
