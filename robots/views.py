@@ -5,7 +5,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.views.generic import DetailView, ListView, FormView
 
-from raids.tasks import play_raid
+from gameplay.raid.standard import StandartRaid
+from raids.models import Raid
 from robots.enums import RobotAction, RobotStatus
 from robots.forms import RobotActionForm, RobotCreatForm
 from robots.models import Robot
@@ -38,9 +39,11 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
             # self.object.status = RobotStatus.PREPARATION
-            self.object.status = RobotStatus.ON_MISSION
+            self.object.status=RobotStatus.ON_MISSION
             self.object.save()
-            play_raid([self.object.pk,])
+            game = StandartRaid.create_for_users([self.object,])
+            game.play()
+            Raid.create_from_game(game)
         if action == RobotAction.DISASSEMBLE:
             self.object.status = RobotStatus.DEAD
             self.object.save()
