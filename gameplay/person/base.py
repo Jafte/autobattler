@@ -81,7 +81,7 @@ class BasePerson:
         self.charisma = charisma
 
         self.level = BasePerson.get_level_at_experience(self.experience)
-        self.armor_class = BasePerson.get_base_armor_class(self.dexterity)
+        self.armor_class = BasePerson.get_base_armor_class(self.constitution)
         self.firewall_class = BasePerson.get_base_armor_class(self.wisdom)
         self.speed = BasePerson.get_base_speed(self.dexterity)
         self.health = self.max_health = BasePerson.get_maximum_hp(self.level, self.constitution)
@@ -93,10 +93,10 @@ class BasePerson:
         self.target = [random.randint(1, 1000), random.randint(1, 1000)]
 
     def __str__(self) -> str:
-        return f"{self.name} (lvl {self.level}) [{self.health}/{self.max_health}]"
+        return f"{self.name} [{self.level}] [{self.health}/{self.max_health}]"
 
     def __repr__(self) -> str:
-        return f"{self.name} (lvl {self.level}) [{self.health}/{self.max_health}]"
+        return f"{self.name} [{self.level}] [{self.health}/{self.max_health}]"
 
     @property
     def is_alive(self) -> bool:
@@ -199,8 +199,8 @@ class BasePerson:
         )
 
     @staticmethod
-    def get_base_armor_class(dexterity: int) -> int:
-        return 10 + BasePerson.get_ability_modifier(dexterity)
+    def get_base_armor_class(constitution: int) -> int:
+        return 10 + BasePerson.get_ability_modifier(constitution)
 
     @staticmethod
     def get_base_speed(dexterity: int) -> int:

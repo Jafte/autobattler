@@ -59,10 +59,9 @@
                             <i class="fa-solid fa-user-check"></i>
                         </span>
                     {% endif %}
-                    {{ raid_bot.name }}
-                    <!--
-                    {{ raid_bot }}
-                    -->
+                    {{ raid_bot.name }} [{{ raid_bot.level }}]<br/>
+                    S{{ raid_bot.strength }}, D{{ raid_bot.dexterity }}, C{{ raid_bot.constitution }},
+                    W{{ raid_bot.wisdom }}, I{{ raid_bot.intelligence }}, CH{{ raid_bot.charisma }}
                 </div>
             {% endfor %}
         </div>
