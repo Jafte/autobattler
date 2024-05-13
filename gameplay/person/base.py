@@ -24,6 +24,7 @@ class BasePerson:
     level: int
     experience: int
     armor_class: int
+    firewall_class: int
     killed_by: Optional["BasePerson"]
     kills: Optional[list["BasePerson"]]
     action_log: list[str]
@@ -81,6 +82,7 @@ class BasePerson:
 
         self.level = BasePerson.get_level_at_experience(self.experience)
         self.armor_class = BasePerson.get_base_armor_class(self.dexterity)
+        self.firewall_class = BasePerson.get_base_armor_class(self.wisdom)
         self.speed = BasePerson.get_base_speed(self.dexterity)
         self.health = self.max_health = BasePerson.get_maximum_hp(self.level, self.constitution)
 
@@ -109,7 +111,16 @@ class BasePerson:
         return self.health < self.max_health
 
     def get_initiative(self) -> int:
-        value = roll_the_dice(20) + BasePerson.get_ability_modifier(self.dexterity)
+        value = roll_the_dice(20) + BasePerson.get_ability_modifier(self.intelligence)
+        return max(value, 0)
+
+    def get_hack_rate(self) -> int:
+        dice_roll = roll_the_dice(20)
+        if dice_roll == 20:
+            return 1000
+        if dice_roll == 1:
+            return 0
+        value = dice_roll + BasePerson.get_ability_modifier(self.charisma)
         return max(value, 0)
 
     def get_attack_rate(self) -> int:
@@ -118,7 +129,7 @@ class BasePerson:
             return 1000
         if dice_roll == 1:
             return 0
-        value = dice_roll + BasePerson.get_ability_modifier(self.dexterity)
+        value = dice_roll + BasePerson.get_ability_modifier(self.intelligence)
         return max(value, 0)
 
     def get_damage_volume(self) -> int:
@@ -167,6 +178,11 @@ class BasePerson:
 
     def attack(self, person: 'BasePerson') -> bool:
         if person.armor_class > self.get_attack_rate():
+            return False
+        return True
+
+    def hack(self, person: 'BasePerson') -> bool:
+        if person.firewall_class > self.get_hack_rate():
             return False
         return True
 

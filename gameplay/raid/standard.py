@@ -170,15 +170,13 @@ class StandartRaid:
         if person_1.is_dead or person_2.is_dead:
             return
 
-        if isinstance(person_1, PlayerPerson) and isinstance(person_2, PlayerPerson):
-            dice_value = roll_the_dice(20) + BasePerson.get_ability_modifier(person_1.charisma)
-            if dice_value >= 20:
-                self.action_log.append(f"{person_1} и {person_2} разошлись миром")
-                person_1.add_experience(100)
-                person_2.add_experience(100)
-                current_distance = self._get_distance(person_1=person_1, person_2=person_2)
-                self._set_distance(person_1=person_1, person_2=person_2, value=current_distance + 30)
-                return
+        if roll_the_dice(20) >= 20:
+            self.action_log.append(f"{person_1} и {person_2} разошлись миром")
+            person_1.add_experience(100)
+            person_2.add_experience(100)
+            current_distance = self._get_distance(person_1=person_1, person_2=person_2)
+            self._set_distance(person_1=person_1, person_2=person_2, value=current_distance + 30)
+            return
 
         while person_1.is_alive and person_2.is_alive:
             if person_1.get_initiative() > person_2.get_initiative():
@@ -186,13 +184,19 @@ class StandartRaid:
             else:
                 q = [[person_2, person_1], [person_1, person_2]]
             for p1, p2 in q:
-                if p1.attack(p2):
-                    if self._one_hit_another(p1, p2):
-                        break
-                else:
+                if p2.hack(p1):
+                    action_msg = f"взломал системы {p1} и отменил все действия"
+                    p2.log(action_msg)
+                    self.action_log.append(f"{p2} {action_msg}")
+                    continue
+
+                if not p1.attack(p2):
                     action_msg = f"промахнулся по {p2}"
                     p1.log(action_msg)
                     self.action_log.append(f"{p1} {action_msg}")
+
+                if self._one_hit_another(p1, p2):
+                    break
 
     def _one_hit_another(self, person_1: 'BasePerson', person_2: 'BasePerson') -> bool:
         damage_value = person_1.get_damage_volume()
