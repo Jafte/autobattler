@@ -185,7 +185,7 @@ class StandartRaid:
                 q = [[person_2, person_1], [person_1, person_2]]
             for p1, p2 in q:
                 if p2.hack(p1):
-                    action_msg = f"взломал системы {p1} и отменил все действия"
+                    action_msg = f"взломал системы {p1}"
                     p2.log(action_msg)
                     self.action_log.append(f"{p2} {action_msg}")
                     continue
