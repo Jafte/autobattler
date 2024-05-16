@@ -142,6 +142,7 @@ class StandartRaid:
         if roll_the_dice(20) >= 20:
             self.action_log.append(f"встретились {plural(len(alive_persons), ['разведчик','разведчика','разведчиков'])}, но все закончилсоь хорошо")
             for person in alive_persons:
+                self.action_log.append(f"{person} был рад встрече")
                 person.add_experience(10)
             return
 
