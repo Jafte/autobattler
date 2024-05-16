@@ -39,9 +39,9 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
             # self.object.status = RobotStatus.PREPARATION
-            self.object.status=RobotStatus.ON_MISSION
+            self.object.status = RobotStatus.ON_MISSION
             self.object.save()
-            game = StandartRaid.create_for_users([self.object,])
+            game = StandartRaid.create_for_user(self.object)
             game.play()
             Raid.create_from_game(game)
         if action == RobotAction.DISASSEMBLE:

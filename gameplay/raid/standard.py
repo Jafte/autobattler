@@ -11,43 +11,37 @@ class StandartRaid:
     persons: Dict[str, BasePerson]
     users: List[str]
     bots: List[str]
-    max_cycles: int
+    looted_bodies: List[str]
     action_log: List[str]
-    distances_dict: Dict[str, int]
+    max_x: int
+    max_y: int
+    max_rounds: int
+    __map: dict[str, list[BasePerson]]
 
-    MAX_DISTANCE = 100
-
-    def __init__(self, max_cycles: int) -> None:
+    def __init__(self, max_x: int, max_y: int, max_rounds: int) -> None:
         self.persons = {}
         self.users = []
         self.bots = []
-        self.max_cycles = max_cycles
+        self.max_x = max_x
+        self.max_y = max_y
+        self.max_rounds = max_rounds
         self.action_log = []
-        self.distances_dict = {}
+        self.looted_bodies = []
 
-        self.__meets = {}
+        self.__map = {}
 
     @classmethod
-    def create_for_users(cls, robots_list: list["Robot"]) -> "StandartRaid":
-        max_level = 1
-        persons = []
-        for robot in robots_list:
-            person = PlayerPerson.create(robot)
-            max_level = max(max_level, person.level)
-            persons.append(person)
-
-        max_cycles = max_level * 10
+    def create_for_user(cls, robot: "Robot") -> "StandartRaid":
         raid = cls(
-            max_cycles=max_cycles,
+            max_x=20,
+            max_y=20,
+            max_rounds=50,
         )
-        for person in persons:
-            raid.join(person)
+        person = PlayerPerson.create(robot)
+        raid.join(person)
 
-        raid_bots = 0
-        for _ in range(len(robots_list)):
-            raid_bots += roll_the_dice(5)
-        for _ in range(raid_bots):
-            bot = BotPerson.create(max_level)
+        for _ in range(roll_the_dice(20)):
+            bot = BotPerson.create(max_level=person.level)
             raid.join(bot)
 
         return raid
@@ -59,6 +53,12 @@ class StandartRaid:
         return f"Raid"
 
     def join(self, person: BasePerson) -> None:
+        self.move_person(
+            person=person,
+            x=random.randint(1, self.max_x),
+            y=random.randint(1, self.max_y)
+        )
+
         self.persons[person.uuid] = person
         if isinstance(person, PlayerPerson):
             if person.uuid not in self.users:
@@ -68,18 +68,20 @@ class StandartRaid:
                 self.bots.append(person.uuid)
 
     def play(self) -> None:
-        for person_1 in self.persons.values():
-            for person_2 in self.persons.values():
-                if person_1.uuid == person_2.uuid:
-                    continue
-                initial_distance = (self.MAX_DISTANCE // 2) - roll_the_dice(20)
-                self._set_distance(person_1=person_1, person_2=person_2, value=initial_distance)
-
-        for _ in range(self.max_cycles):
+        for _ in range(self.max_rounds):
+            self._check_action()
             for person in self.persons.values():
-                self.move_person(person=person)
-
-            random.shuffle(self.users)
+                for __ in range(person.speed):
+                    new_x_min = max(person.position_x - 1, 1)
+                    new_x_max = min(person.position_x + 1, self.max_x)
+                    new_y_min = max(person.position_y - 1, 1)
+                    new_y_max = min(person.position_y + 1, self.max_y)
+                    self.move_person(
+                        person=person,
+                        x=random.choice([new_x_min, new_x_max]),
+                        y=random.choice([new_y_min, new_y_max]),
+                    )
+                    self._check_action()
 
             all_dead = True
 
@@ -87,181 +89,147 @@ class StandartRaid:
                 person = self.persons[user_key]
                 if person.is_dead:
                     continue
-
                 all_dead = False
-
-                met_persons = self._get_met_persons(person)
-
-                if len(met_persons) == 0:
-                    if not person.need_healing:
-                        continue
-
-                    healing_volume = person.get_healing_volume()
-                    action_msg = f"пытался полечился, но что-то пошло не так"
-                    if healing_volume:
-                        action_msg = f"спокойно полечился на {healing_volume}"
-                        person.heal(healing_volume)
-                    person.log(action_msg)
-                    self.action_log.append(f"{person} {action_msg}")
-                    continue
-
-                len_met_persons = len(met_persons)
-                action_msg = f"замечает {plural(len_met_persons, ['силуэт','силуэта','силуэтов'])}"
-                person.log(action_msg)
-                self.action_log.append(f"{person} {action_msg}")
-
-                for met_person in met_persons:
-                    if met_person.group == person.group:
-                        action_msg = f"встретил союзника {met_person}"
-                        person.log(action_msg)
-                        met_person.log(f"наткнулся на союзника {person}")
-                        self.action_log.append(f"{person} {action_msg}")
-                        person.add_experience(10)
-                        met_person.add_experience(10)
-                        continue
-                    self.fight(person, met_person)
 
             if all_dead:
                 break
 
-    def _get_met_persons(self, person: BasePerson) -> List[BasePerson]:
-        if not isinstance(person, PlayerPerson):
-            return []
+    def _check_action(self):
+        for persons_on_coordinate in self.__map.values():
+            if len(persons_on_coordinate) > 1:
+                self.fight(persons_on_coordinate)
+            else:
+                self.heal(persons_on_coordinate)
 
-        if person.is_dead:
-            return []
-
-        if person.uuid not in self.__meets:
-            self.__meets[person.uuid] = {}
-
-        already_met = self.__meets[person.uuid]
-        meet_now: List[BasePerson] = []
-
-        persons_keys = list(self.persons.keys())
-        random.shuffle(persons_keys)
-
-        for person_key in persons_keys:
-            other_person = self.persons[person_key]
-
-            if other_person == person or other_person.is_dead:
+    def heal(self, persons_list: list['BasePerson']) -> None:
+        for person in persons_list:
+            if not person.need_healing:
                 continue
 
-            distance = self._get_distance(person_1=person, person_2=other_person)
-            vision = 20 + BasePerson.get_ability_modifier(person.wisdom)
+            healing_volume = person.get_healing_volume()
+            action_msg = f"пытался полечился, но что-то пошло не так"
+            if healing_volume:
+                action_msg = f"спокойно полечился на {healing_volume}"
+                person.heal(healing_volume)
+            person.log(action_msg)
+            self.action_log.append(f"{person} {action_msg}")
 
-            if distance > vision:
-                continue
+    def fight(self, persons_list: list['BasePerson']) -> None:
+        alive_persons = []
+        dead_persons = []
+        for person in persons_list:
+            if person.is_dead:
+                dead_persons.append(person)
+            else:
+                alive_persons.append(person)
 
-            meet_now.append(other_person)
+        if len(alive_persons) == 0:
+            return
 
-            if other_person.uuid not in already_met:
-                already_met[other_person.uuid] = 0
-            already_met[other_person.uuid] += 1
-
-            if other_person.uuid not in self.__meets:
-                self.__meets[other_person.uuid] = {}
-            if person.uuid not in self.__meets[other_person.uuid]:
-                self.__meets[other_person.uuid][person.uuid] = 0
-            self.__meets[other_person.uuid][person.uuid] += 1
-
-        return meet_now
-
-    def fight(self, person_1: BasePerson, person_2: BasePerson) -> None:
-        if person_1.is_dead or person_2.is_dead:
+        if len(alive_persons) == 1:
+            looted = 0
+            for dead_person in dead_persons:
+                if dead_person.uuid not in self.looted_bodies:
+                    looted += 1
+                    self.looted_bodies.append(dead_person.uuid)
+            if looted == 0:
+                return
+            person = alive_persons[0]
+            self.action_log.append(f"{person} обыскал {plural(looted, ['тело','тела','тел'])}")
+            person.add_experience(10*looted)
             return
 
         if roll_the_dice(20) >= 20:
-            self.action_log.append(f"{person_1} и {person_2} разошлись миром")
-            person_1.add_experience(100)
-            person_2.add_experience(100)
-            current_distance = self._get_distance(person_1=person_1, person_2=person_2)
-            self._set_distance(person_1=person_1, person_2=person_2, value=current_distance + 30)
+            self.action_log.append(f"встретились {plural(len(alive_persons), ['разведчик','разведчика','разведчиков'])}, но все закончилсоь хорошо")
+            for person in alive_persons:
+                person.add_experience(10)
             return
 
-        while person_1.is_alive and person_2.is_alive:
-            if person_1.get_initiative() > person_2.get_initiative():
-                q = [[person_1, person_2], [person_2, person_1]]
-            else:
-                q = [[person_2, person_1], [person_1, person_2]]
-            for p1, p2 in q:
-                if p2.hack(p1):
-                    action_msg = f"взломал системы {p1}"
-                    p2.log(action_msg)
-                    self.action_log.append(f"{p2} {action_msg}")
+        active_person_list = []
+        for person in alive_persons:
+            person.select_target(alive_persons)
+            if person.target:
+                active_person_list.append(person)
+
+        if len(active_person_list) == 0:
+            return
+
+        self.action_log.append(
+            f"встретились {plural(len(active_person_list), ['разведчик', 'разведчика', 'разведчиков'])}")
+        active_person_list.sort(key=lambda p: p.get_initiative())
+
+        while len(active_person_list) > 1:
+            __active_person_list = []
+            for person in active_person_list:
+                if person.is_dead:
                     continue
 
-                if not p1.attack(p2):
-                    action_msg = f"промахнулся по {p2}"
-                    p1.log(action_msg)
-                    self.action_log.append(f"{p1} {action_msg}")
+                if person.stunned:
+                    person.stunned = False
+                    __active_person_list.append(person)
+                    continue
 
-                if self._one_hit_another(p1, p2):
-                    break
+                if not person.target or person.target.is_dead:
+                    person.select_target(alive_persons)
+                    if not person.target:
+                        continue
 
-    def _one_hit_another(self, person_1: 'BasePerson', person_2: 'BasePerson') -> bool:
-        damage_value = person_1.get_damage_volume()
-        person_2.hit(damage_value)
+                if person.hack(person.target):
+                    person.target.stunned = True
+                    action_msg = f"взломал системы {person.target}"
+                    person.log(action_msg)
+                    self.action_log.append(f"{person} {action_msg}")
 
-        action_msg = f"наносит {damage_value} урона по {person_2}"
-        person_1.log(action_msg)
-        person_2.log(f"получает {damage_value} урона от {person_1}")
-        self.action_log.append(f"{person_1} {action_msg}")
+                if person.attack(person.target):
+                    damage_value = person.get_damage_volume()
+                    if damage_value > 0:
+                        person.target.hit(damage_value)
+                        action_msg = f"наносит {damage_value} урона по {person.target}"
+                        person.log(action_msg)
+                        person.target.log(f"получает {damage_value} урона от {person}")
+                        self.action_log.append(f"{person} {action_msg}")
+                    else:
+                        action_msg = f"не смог пробить защиту {person.target}"
+                        person.log(action_msg)
+                        person.target.log(f"не получает урона от {person}")
+                        self.action_log.append(f"{person} {action_msg}")
+                else:
+                    action_msg = f"промахнулся по {person.target}"
+                    person.log(action_msg)
+                    self.action_log.append(f"{person} {action_msg}")
 
-        if person_2.is_dead:
-            person_1.add_experience(100)
-            person_1.kills.append(person_2)
-            person_2.killed_by = person_1
-            action_msg = f"убивает {person_2}"
-            person_2.log(f"умирает от рук {person_1}")
-            self.action_log.append(f"{person_1} {action_msg}")
-            if person_1.health * 2 > person_1.max_health:
-                action_msg = f"спокойно пережил схватку"
-            else:
-                action_msg = f"едва уцелел"
-            person_1.log(action_msg)
-            self.action_log.append(f"{person_1} {action_msg}")
-            return True
-        return False
+                if person.target.is_dead:
+                    if person.target in __active_person_list:
+                        __active_person_list.remove(person.target)
+                    person.add_experience(100)
+                    person.kills.append(person.target)
+                    person.target.killed_by = person
+                    action_msg = f"убивает {person.target}"
+                    person.target.log(f"умирает от рук {person}")
+                    self.action_log.append(f"{person} {action_msg}")
 
-    def move_person(self, person: 'BasePerson') -> None:
+                __active_person_list.append(person)
+
+            active_person_list = __active_person_list
+
+    def move_person(self, person: 'BasePerson', x: int, y: int) -> None:
         if person.is_dead:
             return
 
-        for other_person in self.persons.values():
-            current_distance = self._get_distance(person_1=person, person_2=other_person)
-            if not current_distance:
-                continue
-            change_value = person.speed
-            change_direction = -1
-            if roll_the_dice(6) > 3:
-                change_direction = 1
-            current_distance += change_value * change_direction
-            self._set_distance(person_1=person, person_2=other_person, value=current_distance)
+        new_coordinate_key = f"{x}::{y}"
+        old_coordinate_key = None
+        if person.position_x and person.position_y:
+            old_coordinate_key = f"{person.position_x}::{person.position_y}"
 
-    def _get_distance(self, person_1: 'BasePerson', person_2: 'BasePerson') -> Union[int, None]:
-        if person_1.is_dead or person_2.is_dead:
+        if new_coordinate_key == old_coordinate_key:
             return
 
-        key = self.__get_distance_key(person_1=person_1, person_2=person_2)
-        if key not in self.distances_dict:
-            self.distances_dict[key] = self.MAX_DISTANCE
+        if new_coordinate_key not in self.__map:
+            self.__map[new_coordinate_key] = []
 
-        return self.distances_dict[key]
+        if old_coordinate_key and old_coordinate_key in self.__map:
+            self.__map[old_coordinate_key].remove(person)
 
-    def _set_distance(self, person_1: 'BasePerson', person_2: 'BasePerson', value: int) -> None:
-        if person_1.is_dead or person_2.is_dead:
-            return
-
-        if value < 0:
-            value = 0
-
-        key = self.__get_distance_key(person_1=person_1, person_2=person_2)
-        if key not in self.distances_dict:
-            self.distances_dict[key] = self.MAX_DISTANCE
-
-        self.distances_dict[key] = min(self.MAX_DISTANCE, value)
-
-    def __get_distance_key(self, person_1: 'BasePerson', person_2: 'BasePerson') -> str:
-        key_list = [str(person_1.uuid), str(person_2.uuid)]
-        key_list.sort()
-        return ":".join(key_list)
+        person.position_x = x
+        person.position_y = y
+        self.__map[new_coordinate_key].append(person)

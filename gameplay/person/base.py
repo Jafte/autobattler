@@ -25,12 +25,13 @@ class BasePerson:
     experience: int
     armor_class: int
     firewall_class: int
+    stunned: bool
     killed_by: Optional["BasePerson"]
     kills: Optional[list["BasePerson"]]
     action_log: list[str]
-    r: list[int]
-    v: list[int]
-    target: list[int]
+    target: Optional["BasePerson"]
+    position_x: int
+    position_y: int
 
     LEVEL_PROGRESSION = [
         0,
@@ -89,8 +90,10 @@ class BasePerson:
         self.killed_by = None
         self.kills = []
         self.action_log = []
-        self.r = [random.randint(1, 1000), random.randint(1, 1000)]
-        self.target = [random.randint(1, 1000), random.randint(1, 1000)]
+        self.target = None
+        self.position_x = 0
+        self.position_y = 0
+        self.stunned = False
 
     def __str__(self) -> str:
         return f"{self.name} [{self.level}] [{self.health}/{self.max_health}]"
@@ -108,7 +111,7 @@ class BasePerson:
 
     @property
     def need_healing(self) -> bool:
-        return self.health < self.max_health
+        return self.is_alive and self.health < self.max_health
 
     def get_initiative(self) -> int:
         value = roll_the_dice(20) + BasePerson.get_ability_modifier(self.intelligence)
@@ -208,7 +211,8 @@ class BasePerson:
 
     @staticmethod
     def get_base_speed(dexterity: int) -> int:
-        return 20 + BasePerson.get_ability_modifier(dexterity) * 2
+        speed = 1 + BasePerson.get_ability_modifier(dexterity) // 2
+        return max(speed, 1)
 
     @staticmethod
     def get_level_at_experience(experience: int) -> int:
@@ -217,3 +221,15 @@ class BasePerson:
                 continue
             return level - 1
         return 20
+
+    def select_target(self, persons_list: list['BasePerson']) -> None:
+        self.target = None
+        for person in persons_list:
+            if person.is_dead:
+                continue
+            if self.uuid == person.uuid:
+                continue
+            if person.group == self.group:
+                continue
+            self.target = person
+            break
