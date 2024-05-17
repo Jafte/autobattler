@@ -5,33 +5,36 @@ from gameplay.dices import roll_the_dice
 from gameplay.person import BasePerson, BotPerson, PlayerPerson
 from typing import Dict, List, Union
 from robots.models import Robot
+from raids.models import Raid
 
 
-class StandartRaid:
+class BaseRaid:
     persons: Dict[str, BasePerson]
     users: List[str]
     bots: List[str]
-    looted_bodies: List[str]
     action_log: List[str]
     max_x: int
     max_y: int
     max_rounds: int
+    current_round: int
     __map: dict[str, list[BasePerson]]
+    __map_by_rounds: list[dict[str, list[BasePerson]]]
 
-    def __init__(self, max_x: int, max_y: int, max_rounds: int) -> None:
+    def __init__(self, max_x: int, max_y: int, max_rounds: int, current_round: int = 1) -> None:
         self.persons = {}
         self.users = []
         self.bots = []
         self.max_x = max_x
         self.max_y = max_y
         self.max_rounds = max_rounds
+        self.current_round = current_round
         self.action_log = []
-        self.looted_bodies = []
 
         self.__map = {}
+        self.__map_by_rounds = []
 
     @classmethod
-    def create_for_user(cls, robot: "Robot") -> "StandartRaid":
+    def create_for_user(cls, robot: "Robot") -> "BaseRaid":
         raid = cls(
             max_x=20,
             max_y=20,
@@ -46,19 +49,40 @@ class StandartRaid:
 
         return raid
 
+    @classmethod
+    def create_for_raid(cls, raid: "Raid") -> "BaseRaid":
+        gameplay_raid = cls(**raid.config_state)
+        for robot_dict in raid.users_state:
+            person = PlayerPerson.from_json(robot_dict)
+            gameplay_raid.join(person)
+
+        for bot_dict in raid.bots_state:
+            bot = BotPerson.from_json(bot_dict)
+            gameplay_raid.join(bot)
+
+        return gameplay_raid
+
     def __str__(self) -> str:
         return f"Raid"
 
     def __repr__(self) -> str:
         return f"Raid"
 
-    def join(self, person: BasePerson) -> None:
-        self.move_person(
-            person=person,
-            x=random.randint(1, self.max_x),
-            y=random.randint(1, self.max_y)
-        )
+    def get_config_json(self):
+        return {
+            "max_x": self.max_x,
+            "max_y": self.max_y,
+            "max_rounds": self.max_rounds,
+            "current_round": self.current_round,
+        }
 
+    def join(self, person: BasePerson) -> None:
+        if not person.position_x and not person.position_y:
+            person.move(
+                x=random.randint(1, self.max_x),
+                y=random.randint(1, self.max_y)
+            )
+        self.map_update_person(person)
         self.persons[person.uuid] = person
         if isinstance(person, PlayerPerson):
             if person.uuid not in self.users:
@@ -67,37 +91,59 @@ class StandartRaid:
             if person.uuid not in self.bots:
                 self.bots.append(person.uuid)
 
-    def play(self) -> None:
-        for _ in range(self.max_rounds):
-            self._check_action()
-            for person in self.persons.values():
-                for __ in range(person.speed):
-                    new_x_min = max(person.position_x - 1, 1)
-                    new_x_max = min(person.position_x + 1, self.max_x)
-                    new_y_min = max(person.position_y - 1, 1)
-                    new_y_max = min(person.position_y + 1, self.max_y)
-                    self.move_person(
-                        person=person,
-                        x=random.choice([new_x_min, new_x_max]),
-                        y=random.choice([new_y_min, new_y_max]),
-                    )
-                    self._check_action()
+    @property
+    def is_ended(self):
+        if self.current_round >= self.max_rounds:
+            return True
+        return False
 
-            all_dead = True
+    def next_round(self):
+        self.current_round += 1
+        self._check_action()
+        all_dead = True
+        for user_key in self.users:
+            person = self.persons[user_key]
+            person.reset_action_points()
+            if person.is_dead:
+                continue
+            all_dead = False
+        if all_dead:
+            self.current_round = self.max_rounds
 
-            for user_key in self.users:
-                person = self.persons[user_key]
-                if person.is_dead:
-                    continue
-                all_dead = False
+    def move_user(self, user_uuid, x, y) -> bool:
+        person = self.persons[user_uuid]
+        if not person.can_move:
+            return False
+        person.move(x=x, y=y)
+        self.map_update_person(person)
+        self._check_action()
 
-            if all_dead:
-                break
+        if not person.can_move:
+            self.move_bots()
+            self.next_round()
+
+    def move_bots(self) -> None:
+        for bot_key in self.bots:
+            bot = self.persons[bot_key]
+            bot.reset_action_points()
+            while bot.can_move:
+                new_x_min = max(bot.position_x - 1, 1)
+                new_x_max = min(bot.position_x + 1, self.max_x)
+                new_y_min = max(bot.position_y - 1, 1)
+                new_y_max = min(bot.position_y + 1, self.max_y)
+                bot.move(x=random.choice([new_x_min, new_x_max]), y=random.choice([new_y_min, new_y_max]))
+                self.map_update_person(bot)
+                self._check_action()
 
     def _check_action(self):
         for persons_on_coordinate in self.__map.values():
             if len(persons_on_coordinate) > 1:
-                self.fight(persons_on_coordinate)
+                all_acted = True
+                for person in persons_on_coordinate:
+                    if not person.acted:
+                        all_acted = False
+                if not all_acted:
+                    self.fight(persons_on_coordinate)
             else:
                 self.heal(persons_on_coordinate)
 
@@ -111,7 +157,6 @@ class StandartRaid:
             if healing_volume:
                 action_msg = f"спокойно полечился на {healing_volume}"
                 person.heal(healing_volume)
-            person.log(action_msg)
             self.action_log.append(f"{person} {action_msg}")
 
     def fight(self, persons_list: list['BasePerson']) -> None:
@@ -122,6 +167,7 @@ class StandartRaid:
                 dead_persons.append(person)
             else:
                 alive_persons.append(person)
+                person.acted = True
 
         if len(alive_persons) == 0:
             return
@@ -129,9 +175,9 @@ class StandartRaid:
         if len(alive_persons) == 1:
             looted = 0
             for dead_person in dead_persons:
-                if dead_person.uuid not in self.looted_bodies:
+                if not dead_person.looted:
                     looted += 1
-                    self.looted_bodies.append(dead_person.uuid)
+                    dead_person.loot()
             if looted == 0:
                 return
             person = alive_persons[0]
@@ -165,62 +211,63 @@ class StandartRaid:
                 if person.is_dead:
                     continue
 
+                person.ability_checks()
                 if person.stunned:
-                    person.stunned = False
                     __active_person_list.append(person)
                     continue
 
-                if not person.target or person.target.is_dead:
+                if not person.target:
                     person.select_target(alive_persons)
                     if not person.target:
                         continue
 
-                if person.hack(person.target):
-                    person.target.stunned = True
-                    action_msg = f"взломал системы {person.target}"
-                    person.log(action_msg)
+                person_target = self.persons[person.target]
+                if person_target.is_dead:
+                    person.select_target(alive_persons)
+                    if not person.target:
+                        continue
+                    person_target = self.persons[person.target]
+
+                if not person_target.stunned and person.hack_check(person_target):
+                    person_target.stun()
+                    action_msg = f"взломал системы {person_target}"
                     self.action_log.append(f"{person} {action_msg}")
 
-                if person.attack(person.target):
+                if person.attack_check(person_target):
                     damage_value = person.get_damage_volume()
                     if damage_value > 0:
-                        person.target.hit(damage_value)
-                        action_msg = f"наносит {damage_value} урона по {person.target}"
-                        person.log(action_msg)
-                        person.target.log(f"получает {damage_value} урона от {person}")
+                        person_target.hit(damage_value)
+                        action_msg = f"наносит {damage_value} урона по {person_target}"
                         self.action_log.append(f"{person} {action_msg}")
                     else:
-                        action_msg = f"не смог пробить защиту {person.target}"
-                        person.log(action_msg)
-                        person.target.log(f"не получает урона от {person}")
+                        action_msg = f"не смог пробить защиту {person_target}"
                         self.action_log.append(f"{person} {action_msg}")
                 else:
-                    action_msg = f"промахнулся по {person.target}"
-                    person.log(action_msg)
+                    action_msg = f"промахнулся по {person_target}"
                     self.action_log.append(f"{person} {action_msg}")
 
-                if person.target.is_dead:
-                    if person.target in __active_person_list:
-                        __active_person_list.remove(person.target)
+                if person_target.is_dead:
+                    if person_target in __active_person_list:
+                        __active_person_list.remove(person_target)
                     person.add_experience(100)
-                    person.kills.append(person.target)
-                    person.target.killed_by = person
-                    action_msg = f"убивает {person.target}"
-                    person.target.log(f"умирает от рук {person}")
+                    person.kills.append(person_target.uuid)
+                    person_target.killed_by = person.uuid
+                    action_msg = f"убивает {person_target}"
                     self.action_log.append(f"{person} {action_msg}")
 
                 __active_person_list.append(person)
 
             active_person_list = __active_person_list
 
-    def move_person(self, person: 'BasePerson', x: int, y: int) -> None:
+    def map_update_person(self, person: 'BasePerson') -> None:
         if person.is_dead:
             return
 
-        new_coordinate_key = f"{x}::{y}"
+        new_coordinate_key = f"{person.position_x}::{person.position_y}"
         old_coordinate_key = None
-        if person.position_x and person.position_y:
-            old_coordinate_key = f"{person.position_x}::{person.position_y}"
+        if person.trails:
+            prev_point = person.trails[-1]
+            old_coordinate_key = f"{prev_point[0]}::{prev_point[1]}"
 
         if new_coordinate_key == old_coordinate_key:
             return
@@ -229,8 +276,9 @@ class StandartRaid:
             self.__map[new_coordinate_key] = []
 
         if old_coordinate_key and old_coordinate_key in self.__map:
-            self.__map[old_coordinate_key].remove(person)
+            try:
+                self.__map[old_coordinate_key].remove(person)
+            except ValueError:
+                pass
 
-        person.position_x = x
-        person.position_y = y
         self.__map[new_coordinate_key].append(person)

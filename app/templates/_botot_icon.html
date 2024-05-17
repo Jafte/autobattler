@@ -1,0 +1,15 @@
+{% if not robot_in_raid.raid.is_finished %}
+    <span class="tag is-warning">
+        <i class="fa-solid fa-user-secret"></i>
+    </span>
+{% else %}
+    {% if robot_in_raid.is_died %}
+        <span class="tag is-danger">
+            <i class="fa-solid fa-skull"></i>
+        </span>
+    {% else %}
+        <span class="tag is-success">
+            <i class="fa-solid fa-face-smile"></i>
+        </span>
+    {% endif %}
+{% endif %}

@@ -1,0 +1,22 @@
+#game-board {
+    display: grid;
+    gap: 2px;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ddd;
+    user-select: none;
+}
+
+.cell.revealed {
+    background-color: #bbb;
+}
+
+.cell.bomb {
+    background-color: red;
+}

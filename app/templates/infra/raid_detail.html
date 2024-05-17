@@ -15,10 +15,191 @@
             </span>
         </a>
     </div>
-    <h1 class="title">Боевой отчет {{ raid.created_at|date:"U" }}#{{ raid.pk }}</h1>
+    <h1 class="title">
+        Канал управления {{ raid.created_at|date:"U" }}#{{ raid.pk }}
+        <span class="tag is-success" id="raid_active" {% if raid.is_finished %}style="display: none;"{% endif %}>
+             управление активно
+        </span>
+        <span class="tag is-info"  id="raid_finished" {% if not raid.is_finished %}style="display: none;"{% endif %}>
+            последние полученные данные
+        </span>
+    </h1>
     <hr/>
     <div class="columns">
         <div class="column">
+            <div class="content">
+                <div
+                        id="game-board"
+                        style="grid-template-columns: repeat({{ raid.config_state.max_x }}, 30px);grid-template-rows: repeat({{ raid.config_state.max_y }}, 30px);"
+                ></div>
+                {% csrf_token %}
+                <script>
+                    let is_ended = {{ raid.is_finished|lower }};
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const gameBoard = document.getElementById('game-board');
+                    const boardSizeX = {{ raid.config_state.max_x }};
+                    const boardSizeY = {{ raid.config_state.max_y }};
+                    let bots = {};
+                    let robots = {};
+                    {% for bot in raid.bots_state %}
+                        bots["{{ bot.uuid }}"] = {
+                            uuid: "{{ bot.uuid }}",
+                            x: {{ bot.position_x }},
+                            y: {{ bot.position_y }},
+                        }
+                    {% endfor %}
+                    {% for robot in raid.users_state %}
+                        robots["{{ robot.uuid }}"] = {
+                            uuid: "{{ robot.uuid }}",
+                            x: {{ robot.position_x }},
+                            y: {{ robot.position_y }},
+                            trails: {{ robot.trails|default:"[]" }},
+                        }
+                    {% endfor %}
+                    const active_robot_uuid = "{{ active_robot_uuid }}";
+
+                    function createBoard() {
+                        for (let i = 0; i < boardSizeX; i++) {
+                            for (let j = 0; j < boardSizeY; j++) {
+                                const cell = document.createElement('div');
+                                const x = j+1;
+                                const y = i+1;
+                                cell.classList.add('cell');
+                                cell.dataset.row = y;
+                                cell.dataset.col = x;
+                                cell.id = x + "::" + y;
+                                cell.dataset.visited = 0;
+                                if (!is_ended) {
+                                    cell.classList.add('is-clickable');
+                                    cell.addEventListener('click', handleCellClick);
+                                }
+                                gameBoard.appendChild(cell);
+                            }
+                        }
+                        placeIcons();
+                    }
+
+                    function placeIcons() {
+                        for (const robot_uuid in robots) {
+                            let robot = robots[robot_uuid];
+                            const roboSpan = document.createElement('span');
+                            roboSpan.classList.add('icon');
+                            roboSpan.id = "robot_" + robot.uuid;
+                            roboSpan.innerHTML = "<i class=\"fa-solid fa-robot\"></i>";
+                            let cell = document.getElementById(robot.x + "::" + robot.y)
+                            cell.appendChild(roboSpan);
+                            cell.dataset.visited = 1;
+                            cell.classList.add('revealed');
+
+                            for (let j = 0; j < robot.trails.length; j++) {
+                                let point = robot.trails[j];
+                                let cell = document.getElementById(point[0] + "::" + point[1])
+                                cell.dataset.visited = 1;
+                                cell.classList.add('revealed');
+                            }
+                        }
+
+                        for (const bot_uuid in bots) {
+                            let bot = bots[bot_uuid];
+                            const botoSpan = document.createElement('span');
+                            botoSpan.classList.add('icon');
+                            botoSpan.id = "bot_" + bot.uuid;
+                            botoSpan.innerHTML = "<i class=\"fa-solid fa-bug\"></i>";
+                            let cell = document.getElementById(bot.x + "::" + bot.y)
+                            cell.appendChild(botoSpan);
+                        }
+                    }
+
+                    async function handleCellClick(event) {
+                        if (is_ended) {
+                            return;
+                        }
+                        const roboSpan = document.getElementById('robot_' + active_robot_uuid);
+                        const cell = event.target.closest('.cell');
+                        const row = parseInt(cell.dataset.row);
+                        const col = parseInt(cell.dataset.col);
+                        const divX = Math.abs(col - robots[active_robot_uuid].x);
+                        const divY = Math.abs(row - robots[active_robot_uuid].y);
+
+                        if (divX === 1 && divY === 1) {
+                            console.log("далеко");
+                            return;
+                        }
+                        if (divX > 1) {
+                            console.log("далеко");
+                            return;
+                        }
+                        if (divY > 1) {
+                            console.log("далеко");
+                            return;
+                        }
+
+                        cell.appendChild(roboSpan);
+                        robots[active_robot_uuid].x = col;
+                        robots[active_robot_uuid].y = row;
+
+                        if (parseInt(cell.dataset.visited) !== 1) {
+                            cell.dataset.visited = 1;
+                            cell.classList.add('revealed');
+                        }
+
+                        try {
+                            const response = await fetch('', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrftoken
+                                },
+                                mode: 'same-origin',
+                                body: JSON.stringify({
+                                    "uuid": active_robot_uuid,
+                                    "x": col,
+                                    "y": row
+                                })
+                            });
+
+                            const result = await response.json();
+                            for (const bot of result.bots_state) {
+                                bots[bot.uuid].x = bot.position_x;
+                                bots[bot.uuid].y = bot.position_y;
+                                let cell = document.getElementById(bot.position_x + "::" + bot.position_y);
+                                let botoSpan = document.getElementById("bot_" + bot.uuid);
+                                cell.appendChild(botoSpan);
+                                if (bot.killed_by) {
+                                    let botoStat = document.getElementById("bot_stat_" + bot.uuid);
+                                    botoStat.querySelector('.dead').style.display = 'inline-flex';
+                                    botoStat.querySelector('.alive').style.display = 'none';
+                                }
+                            }
+                            for (const robot of result.users_state) {
+                                if (robot.killed_by) {
+                                    let roboStat = document.getElementById("robot_stat_" + robot.uuid);
+                                    roboStat.querySelector('.dead').style.display = 'inline-flex';
+                                    roboStat.querySelector('.alive').style.display = 'none';
+                                }
+                            }
+                            const progressBar = document.getElementById('progress_bar');
+                            progressBar.value = result.config_state.current_round;
+                            is_ended = result.is_ended;
+                            if (is_ended) {
+                                const cells = document.querySelectorAll('.cell');
+                                cells.forEach(cell => {
+                                    cell.removeEventListener('click', handleCellClick);
+                                    cell.classList.remove('is-clickable');
+                                });
+                                const raidFinishedTag = document.getElementById("raid_finished");
+                                const raidActiveTag = document.getElementById("raid_active");
+                                raidFinishedTag.style.display = 'inline-flex';
+                                raidActiveTag.style.display = 'none';
+                            }
+                         } catch (error) {
+                            console.error('Error:', error);
+                         }
+                    }
+
+                    createBoard();
+                </script>
+            </div>
             <h2 class="subtitle">Журнал</h2>
             <div class="content">
                 {% for log in raid.action_log %}
@@ -27,44 +208,41 @@
             </div>
         </div>
         <div class="column">
-            <h2 class="subtitle">Замеченные субъекты</h2>
-            {% for raid_robot in raid.raid_robots.all %}
-                <div class="block">
-                    {% if raid_robot.is_died %}
-                        <span class="tag is-danger">
-                            <i class="fa-solid fa-user-slash"></i>
-                        </span>
-                    {% else %}
-                        <span class="tag is-success">
-                            <i class="fa-solid fa-user-check"></i>
-                        </span>
-                    {% endif %}
-                    {% if raid_robot.user == user %}
-                    <a href="{% url 'infra_robot_detail' raid_robot.robot.pk %}">
-                        {{ raid_robot.robot.name }}
+            <progress
+                    id="progress_bar"
+                    class="progress"
+                    value="{{ raid.config_state.current_round }}"
+                    max="{{ raid.config_state.max_rounds }}"
+            ></progress>
+            <h2 class="subtitle">Разведчик</h2>
+            {% for robot in raid.users_state %}
+                <div class="block" id="robot_stat_{{ robot.uuid }}">
+                    <span class="tag is-danger dead" {% if not robot.killed_by %}style="display: none;"{% endif %}>
+                        <i class="fa-solid fa-skull"></i>
+                    </span>
+                    <span class="tag is-success alive" {% if robot.killed_by %}style="display: none;"{% endif %}>
+                        <i class="fa-solid fa-face-smile"></i>
+                    </span>
+                    <a href="{% url 'infra_robot_detail' robot.uuid %}">
+                        {{ robot.name }}
                     </a>
-                    {% else %}
-                    {{ raid_robot.robot.name }}
-                    {% endif %}
                     <br/>
-                    S{{ raid_robot.robot.strength }}, D{{ raid_robot.robot.dexterity }}, C{{ raid_robot.robot.constitution }},
-                    W{{ raid_robot.robot.wisdom }}, I{{ raid_robot.robot.intelligence }}, CH{{ raid_robot.robot.charisma }}
+                    S{{ robot.strength }}, D{{ robot.dexterity }}, C{{ robot.constitution }},
+                    W{{ robot.wisdom }}, I{{ robot.intelligence }}, CH{{ robot.charisma }}
                 </div>
             {% endfor %}
-            {% for raid_bot in raid.bots_result.values %}
-                <div class="block">
-                    {% if raid_bot.killed_by %}
-                        <span class="tag is-danger">
-                            <i class="fa-solid fa-user-slash"></i>
-                        </span>
-                    {% else %}
-                        <span class="tag is-success">
-                            <i class="fa-solid fa-user-check"></i>
-                        </span>
-                    {% endif %}
-                    {{ raid_bot.name }} [{{ raid_bot.level }}]<br/>
-                    S{{ raid_bot.strength }}, D{{ raid_bot.dexterity }}, C{{ raid_bot.constitution }},
-                    W{{ raid_bot.wisdom }}, I{{ raid_bot.intelligence }}, CH{{ raid_bot.charisma }}
+            <h2 class="subtitle">Посторонняя активность</h2>
+            {% for bot in raid.bots_state %}
+                <div class="block" id="bot_stat_{{ bot.uuid }}">
+                    <span class="tag is-danger dead" {% if not bot.killed_by %}style="display: none;"{% endif %}>
+                        <i class="fa-solid fa-skull"></i>
+                    </span>
+                    <span class="tag is-success alive" {% if bot.killed_by %}style="display: none;"{% endif %}>
+                        <i class="fa-solid fa-face-smile"></i>
+                    </span>
+                    {{ bot.name }} [{{ bot.level }}]<br/>
+                    S{{ bot.strength }}, D{{ bot.dexterity }}, C{{ bot.constitution }},
+                    W{{ bot.wisdom }}, I{{ bot.intelligence }}, CH{{ bot.charisma }}
                 </div>
             {% endfor %}
         </div>

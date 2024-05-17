@@ -67,20 +67,16 @@
                 <div class="card-content">
                     {% if last_raids %}
                     <ul>
-                        {% for robot_raid in last_raids %}
+                        {% for robot_in_raid in last_raids %}
                             <li>
-                                {% if robot_raid.is_died %}
-                                    <span class="tag is-danger">
-                                        <i class="fa-solid fa-user-slash"></i>
-                                    </span>
-                                {% else %}
-                                    <span class="tag is-success">
-                                        <i class="fa-solid fa-user-check"></i>
-                                    </span>
-                                {% endif %}
-                                <a href="{% url 'infra_raid_detail' robot_raid.raid.pk  %}">
-                                    {{ robot_raid.raid.created_at|date:"U" }}
+                                {% include "_botot_icon.html" with robot_in_raid=robot_in_raid %}
+
+                                <a href="{% url 'infra_raid_detail' robot_in_raid.raid.pk  %}">
+                                    {{ robot_in_raid.raid.created_at|date:"U" }}
                                 </a>
+                                {% if not robot_in_raid.raid.is_finished %}
+                                    активен
+                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
