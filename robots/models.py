@@ -53,8 +53,12 @@ class Robot(models.Model):
 
     def update_from_raid(self, robot_in_raid: "PlayerPerson"):
         self.status = RobotStatus.WAITING
+
         self.experience = robot_in_raid.experience
+        if not robot_in_raid.is_dead:
+            self.experience += 100
         self.user.add_experience(self.experience)
+
         if robot_in_raid.is_dead:
             self.status = RobotStatus.DEAD
             self.died_at = timezone.now()

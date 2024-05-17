@@ -56,7 +56,7 @@
             <div class="card block">
                 <header class="card-header">
                     <div class="card-header-title">
-                        Последние миссии
+                        Сеансы связи
                     </div>
                     <div class="card-header-icon">
                         <span class="icon">
@@ -66,20 +66,31 @@
                 </header>
                 <div class="card-content">
                     {% if last_raids %}
-                    <ul>
+                    <table class="table is-fullwidth">
                         {% for robot_in_raid in last_raids %}
-                            <li>
-                                {% include "_botot_icon.html" with robot_in_raid=robot_in_raid %}
-
-                                <a href="{% url 'infra_raid_detail' robot_in_raid.raid.pk  %}">
-                                    {{ robot_in_raid.raid.created_at|date:"U" }}
-                                </a>
-                                {% if not robot_in_raid.raid.is_finished %}
-                                    активен
+                            <tr>
+                                <td>
+                                    {% include "_botot_icon.html" with robot_in_raid=robot_in_raid %}
+                                </td>
+                                <td>
+                                    <a class="is-link" href="{% url 'infra_raid_detail' robot_in_raid.raid.pk  %}">
+                                        {{ robot_in_raid.raid.created_at|date:"U" }}
+                                    </a>
+                                </td>
+                                <td>
+                                {% if robot_in_raid.raid.is_finished %}
+                                    <span class="tag is-info">
+                                        завершен
+                                    </span>
+                                {% else %}
+                                    <span class="tag is-success">
+                                        активен
+                                    </span>
                                 {% endif %}
-                            </li>
+                                </td>
+                            </tr>
                         {% endfor %}
-                    </ul>
+                    </table>
                 {% else %}
                 <div class="block">
                     не участвовал в разведывательных миссиях

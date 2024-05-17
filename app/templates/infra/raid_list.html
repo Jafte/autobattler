@@ -21,6 +21,9 @@
         <thead>
         <tr>
             <th>Временная метка</th>
+            <th>Размер сектора</th>
+            <th>Окно связи</th>
+            <th>Активных сигналов</th>
             <th>Роботы</th>
         </tr>
         </thead>
@@ -31,6 +34,15 @@
                 <a href="{% url 'infra_raid_detail' raid.pk %}">
                     {{ raid.created_at|date:"U" }}
                 </a>
+            </td>
+            <td>
+                {{ raid.config_state.max_x }}x{{ raid.config_state.max_y }} км.
+            </td>
+            <td>
+                {{ raid.config_state.max_rounds }} д.
+            </td>
+            <td>
+                {{ raid.bots_state|length }}
             </td>
             <td>
                 <ul>
