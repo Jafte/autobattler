@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class Robot(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
+    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE, related_name='robots')
     name = models.CharField(max_length=200)
     status = models.CharField(max_length=64, choices=RobotStatus.choices, default=RobotStatus.WAITING)
     experience = models.IntegerField(default=0)

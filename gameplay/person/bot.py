@@ -1,6 +1,7 @@
 import random
 import hashlib
 
+from gameplay.consts import LEVEL_PROGRESSION
 from gameplay.dices import roll_the_dice, roll_ability_dice
 from gameplay.person.base import BasePerson
 from robots.utils import generate_random_name
@@ -30,7 +31,7 @@ class BotPerson(BasePerson):
             uuid=hashlib.md5(random_name.encode("utf-8")).hexdigest(),
             name=random_name,
             group='bots',
-            experience=BasePerson.LEVEL_PROGRESSION[level],
+            experience=LEVEL_PROGRESSION[level],
             strength=strength,
             dexterity=dexterity,
             constitution=constitution,

@@ -13,6 +13,10 @@
     user-select: none;
 }
 
+.cell.active {
+    background-color: #bdb;
+}
+
 .cell.revealed {
     background-color: #bbb;
 }

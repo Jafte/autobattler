@@ -39,7 +39,6 @@ class RobotDetailView(LoginRequiredMixin, DetailView, FormView):
         self.object = self.get_object()
         action = form.cleaned_data["action"]
         if action == RobotAction.SEND_TO_RAID:
-            # self.object.status = RobotStatus.PREPARATION
             self.object.status = RobotStatus.ON_MISSION
             self.object.save()
             game = BaseRaid.create_for_user(self.object)
@@ -60,9 +59,6 @@ class RobotCreateView(LoginRequiredMixin, FormView):
         if not self.request.user.robot_options:
             self.request.user.generate_new_robot_options()
         context["robot_options"] = self.request.user.robot_options
-        active_robots_num = Robot.objects.filter(user=self.request.user).exclude(status=RobotStatus.DEAD).count()
-        active_robots_max = self.request.user.get_max_robots()
-        context["can_create_robots"] = active_robots_num < active_robots_max
         return context
 
     def form_valid(self, form):

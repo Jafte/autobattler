@@ -2,6 +2,7 @@ import random
 from typing import Optional
 
 from gameplay.dices import roll_the_dice
+from gameplay.utils import get_level_at_experience
 
 
 class BasePerson:
@@ -36,30 +37,6 @@ class BasePerson:
     position_x: int
     position_y: int
     trails: list[list[int]]
-
-    LEVEL_PROGRESSION = [
-        0,
-        0,
-        300,
-        900,
-        2700,
-        6500,  # 5
-        14000,
-        23000,
-        34000,
-        48000,
-        64000,  # 10
-        85000,
-        100000,
-        120000,
-        140000,
-        165000,  # 15
-        195000,
-        225000,
-        265000,
-        305000,
-        355000,  # 20
-    ]
 
     def __init__(
             self,
@@ -103,7 +80,7 @@ class BasePerson:
         self.charisma = charisma
 
         if level is None:
-            level = BasePerson.get_level_at_experience(self.experience)
+            level = get_level_at_experience(self.experience)
         self.level = level
 
         if armor_class is None:
@@ -337,11 +314,3 @@ class BasePerson:
     def get_base_action_points(dexterity: int) -> int:
         action_points = 1 + BasePerson.get_ability_modifier(dexterity) // 2
         return max(action_points, 1)
-
-    @staticmethod
-    def get_level_at_experience(experience: int) -> int:
-        for level, threshold in enumerate(BasePerson.LEVEL_PROGRESSION):
-            if experience >= threshold:
-                continue
-            return level - 1
-        return 20

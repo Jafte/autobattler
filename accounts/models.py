@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from gameplay.dices import roll_ability_dice
+from robots.enums import RobotStatus
 from robots.utils import craete_new_name
 
 
@@ -141,3 +142,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_max_robots(self):
         return 1
+
+    def can_create_robots(self):
+        active_robots_num = self.robots.exclude(status=RobotStatus.DEAD).count()
+        active_robots_max = self.get_max_robots()
+        return active_robots_num < active_robots_max

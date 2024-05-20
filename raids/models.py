@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.urls import reverse
 
 from gameplay.person import BotPerson, PlayerPerson
+from gameplay.raid.actions import Action
 from raids.enums import RaidStatus
 from robots.models import Robot
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +20,7 @@ class Raid(models.Model):
     config_state = models.JSONField(_("config state"), default=dict, blank=True)
     status = models.CharField(_("status"), choices=RaidStatus.choices, max_length=50, default=RaidStatus.NEW)
     robots = models.ManyToManyField(Robot, through='UserRaid')
-    action_log = models.JSONField(default=list, blank=True)
+    log = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
 
@@ -29,6 +30,14 @@ class Raid(models.Model):
     @property
     def is_finished(self) -> bool:
         return self.status == RaidStatus.FINISHED
+
+    @property
+    def action_log(self) -> list[Action]:
+        result = []
+        for action_json in self.log:
+            action_item = Action.from_json(action_json)
+            result.append(action_item)
+        return result
 
     def get_absolute_url(self):
         return reverse("infra_raid_detail", args=[self.pk])
@@ -51,7 +60,11 @@ class Raid(models.Model):
             users_state.append(player.to_json())
         self.users_state = users_state
 
-        self.action_log = self.action_log + gameplay_raid.action_log
+        new_log = []
+        for action_item in gameplay_raid.log:
+            dict_to_save = action_item.to_json()
+            new_log.append(dict_to_save)
+        self.log += new_log
         self.config_state = gameplay_raid.get_config_json()
         if gameplay_raid.is_ended:
             self.status = RaidStatus.FINISHED

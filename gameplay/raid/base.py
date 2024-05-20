@@ -4,6 +4,8 @@ from app.utils import plural
 from gameplay.dices import roll_the_dice
 from gameplay.person import BasePerson, BotPerson, PlayerPerson
 from typing import Dict, List, Union
+
+from gameplay.raid.actions import Action, Heal, Met, Hacked, Hit, Missed
 from robots.models import Robot
 from raids.models import Raid
 
@@ -12,7 +14,7 @@ class BaseRaid:
     persons: Dict[str, BasePerson]
     users: List[str]
     bots: List[str]
-    action_log: List[str]
+    log: List[Action]
     max_x: int
     max_y: int
     max_rounds: int
@@ -28,7 +30,7 @@ class BaseRaid:
         self.max_y = max_y
         self.max_rounds = max_rounds
         self.current_round = current_round
-        self.action_log = []
+        self.log = []
 
         self.__map = {}
         self.__map_by_rounds = []
@@ -153,11 +155,10 @@ class BaseRaid:
                 continue
 
             healing_volume = person.get_healing_volume()
-            action_msg = f"пытался полечился, но что-то пошло не так"
             if healing_volume:
-                action_msg = f"спокойно полечился на {healing_volume}"
                 person.heal(healing_volume)
-            self.action_log.append(f"{person} {action_msg}")
+
+            self.log.append(Heal(person, healing_volume))
 
     def fight(self, persons_list: list['BasePerson']) -> None:
         alive_persons = []
@@ -181,14 +182,14 @@ class BaseRaid:
             if looted == 0:
                 return
             person = alive_persons[0]
-            self.action_log.append(f"{person} обыскал {plural(looted, ['тело','тела','тел'])}")
+            # self.action_log.append(f"{person} обыскал {plural(looted, ['тело','тела','тел'])}")
             person.add_experience(10*looted)
             return
 
         if roll_the_dice(20) >= 20:
-            self.action_log.append(f"встретились {plural(len(alive_persons), ['разведчик','разведчика','разведчиков'])}, но все закончилсоь хорошо")
+            # self.action_log.append(f"встретились {plural(len(alive_persons), ['разведчик','разведчика','разведчиков'])}, но все закончилсоь хорошо")
             for person in alive_persons:
-                self.action_log.append(f"{person} был рад встрече")
+                # self.action_log.append(f"{person} был рад встрече")
                 person.add_experience(10)
             return
 
@@ -201,9 +202,7 @@ class BaseRaid:
         if len(active_person_list) == 0:
             return
 
-        self.action_log.append(
-            f"встретились {plural(len(active_person_list), ['разведчик', 'разведчика', 'разведчиков'])}")
-        active_person_list.sort(key=lambda p: p.get_initiative())
+        self.log.append(Met(len(active_person_list)))
 
         while len(active_person_list) > 1:
             __active_person_list = []
@@ -230,21 +229,14 @@ class BaseRaid:
 
                 if not person_target.stunned and person.hack_check(person_target):
                     person_target.stun()
-                    action_msg = f"взломал системы {person_target}"
-                    self.action_log.append(f"{person} {action_msg}")
+                    self.log.append(Hacked(person, person_target))
 
                 if person.attack_check(person_target):
                     damage_value = person.get_damage_volume()
-                    if damage_value > 0:
-                        person_target.hit(damage_value)
-                        action_msg = f"наносит {damage_value} урона по {person_target}"
-                        self.action_log.append(f"{person} {action_msg}")
-                    else:
-                        action_msg = f"не смог пробить защиту {person_target}"
-                        self.action_log.append(f"{person} {action_msg}")
+                    person_target.hit(damage_value)
+                    self.log.append(Hit(person, damage_value, person_target))
                 else:
-                    action_msg = f"промахнулся по {person_target}"
-                    self.action_log.append(f"{person} {action_msg}")
+                    self.log.append(Missed(person, person_target))
 
                 if person_target.is_dead:
                     if person_target in __active_person_list:
@@ -252,8 +244,6 @@ class BaseRaid:
                     person.add_experience(100)
                     person.kills.append(person_target.uuid)
                     person_target.killed_by = person.uuid
-                    action_msg = f"убивает {person_target}"
-                    self.action_log.append(f"{person} {action_msg}")
 
                 __active_person_list.append(person)
 

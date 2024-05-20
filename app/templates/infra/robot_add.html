@@ -27,7 +27,7 @@
     </div>
     {% endif %}
     <div class="columns">
-        {% if can_create_robots %}
+        {% if user.can_create_robots %}
             {% for option in robot_options %}
             <div class="column">
                 <form action="{% url 'infra_robot_add' %}" method="post">
@@ -90,7 +90,7 @@
         </div>
         {% endif %}
     </div>
-    {% if can_create_robots %}
+    {% if user.can_create_robots %}
         <div class="columns">
             <div class="column">
                 <div class="card">

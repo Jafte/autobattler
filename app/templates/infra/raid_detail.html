@@ -90,6 +90,17 @@
                             cell.appendChild(roboSpan);
                             cell.dataset.visited = 1;
                             cell.classList.add('revealed');
+                            const cells = document.querySelectorAll('.cell');
+                            cells.forEach(cell => {
+                                cell.classList.remove('active');
+                                const row = parseInt(cell.dataset.row);
+                                const col = parseInt(cell.dataset.col);
+                                const divX = Math.abs(col - robots[active_robot_uuid].x);
+                                const divY = Math.abs(row - robots[active_robot_uuid].y);
+                                if ((divX === 1 && divY === 0) || (divX === 0 && divY === 1)) {
+                                    cell.classList.add('active');
+                                }
+                            });
 
                             for (let j = 0; j < robot.trails.length; j++) {
                                 let point = robot.trails[j];
@@ -137,6 +148,18 @@
                         cell.appendChild(roboSpan);
                         robots[active_robot_uuid].x = col;
                         robots[active_robot_uuid].y = row;
+
+                        const cells = document.querySelectorAll('.cell');
+                        cells.forEach(cell => {
+                            cell.classList.remove('active');
+                            const row = parseInt(cell.dataset.row);
+                            const col = parseInt(cell.dataset.col);
+                            const divX = Math.abs(col - robots[active_robot_uuid].x);
+                            const divY = Math.abs(row - robots[active_robot_uuid].y);
+                            if ((divX === 1 && divY === 0) || (divX === 0 && divY === 1)) {
+                                cell.classList.add('active');
+                            }
+                        });
 
                         if (parseInt(cell.dataset.visited) !== 1) {
                             cell.dataset.visited = 1;
